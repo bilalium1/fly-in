@@ -1,11 +1,14 @@
 from parser import parse
-
+from visualizer.pygame_vis import viz
 
 def main():
 
     print("\n[B//] WELCOME TO FLY-IN\n")
     print("[+//] RUNNING PARSING TEST...\n")
-    info = parse("maps/easy/01_linear_path.txt")
+    info = parse("maps/easy/02_simple_fork.txt")
+
+    print(info)
+    viz(info)
 
     
 

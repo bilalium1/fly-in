@@ -42,8 +42,8 @@ def parse(file_name: str):
                 hub_sp = sp[1].strip().split(" ")
                 print(hub_sp)
                 name = hub_sp[0]
-                x = hub_sp[1]
-                y = hub_sp[2]
+                x = int(hub_sp[1])
+                y = int(hub_sp[2])
                 color = hub_sp[3].split("=")[1].replace("]", "")
                 info["hubs"].update({name: (x, y, color)})
 
