@@ -13,11 +13,18 @@
 # connection: waypoint1-waypoint2
 # connection: waypoint2-goal
 
+zones = [
+    "normal",
+    "blocked",
+    "restricted",
+    "priority"
+]
+
 def parse(file_name: str):
 
     info = {"nb_drones": 0,
             "hubs": dict(),
-            "connections": dict()}
+            "connections": []}
 
     with open(file_name, "r") as f:
         lines = f.readlines()
@@ -38,18 +45,33 @@ def parse(file_name: str):
                 info["nb_drones"] = int(sp[1])
 
             if sp[0].endswith("hub"):
-                print("hh")
-                hub_sp = sp[1].strip().split(" ")
+                hub_sp = sp[1].strip().split(" ", 3)
                 print(hub_sp)
                 name = hub_sp[0]
                 x = int(hub_sp[1])
                 y = int(hub_sp[2])
-                color = hub_sp[3].split("=")[1].replace("]", "")
-                info["hubs"].update({name: (x, y, color)})
+
+                meta = {"color": 'grey', "zone": "normal", "max_drones": 1}
+                meta_sp = hub_sp[3].strip("[]").split(" ")
+                print(meta_sp)
+                for m in meta_sp:
+                    m_sp = m.split("=")
+                    print(m_sp)
+                    if m_sp[0] == "color":
+                        meta.update({"color": m_sp[1]})
+                    elif m_sp[0] == "zone":
+                        if m_sp[1] not in zones:
+                            m_sp[1] = "normal"
+                        meta.update({"zone": m_sp[1]})
+                    elif m_sp[0] == "max_drones":
+                        print("HAAAA: ", m_sp[1])
+                        meta.update({"max_drones": int(m_sp[1])})
+
+                info["hubs"].update({name: (x, y, meta)})
 
             if sp[0] == "connection":
-                con_sp = sp[1].strip().split("-")
-                info["connections"].update({con_sp[0]:con_sp[1]})
+                con_sp = sp[1].strip().split(" ")[0].split('-')
+                info["connections"].append((con_sp[0], con_sp[1]))
 
     return info
 
