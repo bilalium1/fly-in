@@ -42,13 +42,15 @@ def menu_viz():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RIGHT:
+                if event.key == pygame.K_DOWN:
                     i = (i + 1) % n_maps
-                if event.key == pygame.K_LEFT:
+                if event.key == pygame.K_UP:
                     i = (i - 1) % n_maps
                 current_map = maps[i]
                 if event.key == pygame.K_RETURN:
                     return (current_map)
+                if event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
+                    return (None)
 
         # fill screen with color to wipe away anything from last frame
         screen.blit(img, (0,0))
@@ -59,13 +61,20 @@ def menu_viz():
         choose = small_font.render("// CHOOSE YOUR MAP", True, (10,10,12))
         diff = small_font.render(current_map.split("/")[1].upper(), True, (10,10,12))
         map = big_font.render(current_map.split("/")[2][:-4].replace("_", " ").upper(), True, (0,0,0))
+        n_map = small_font.render(maps[(i + 1) % n_maps].split("/")[2][:-4].replace("_", " ").upper(), True, (0,0,0))
+        nn_map = small_font.render(maps[(i + 2) % n_maps].split("/")[2][:-4].replace("_", " ").upper(), True, (0,0,0))
         credit = small_font.render("B//", True, (10,10,12))
+        n_map.set_alpha(100)
+        nn_map.set_alpha(70)
         screen.blit(header_hs, (50, 50 + math.sin(time.time() * 3 - 0.5) * 8))
         screen.blit(header_sh, (50, 50 + math.sin(time.time() * 3 - 0.2) * 8))
         screen.blit(header, (50, 50 + math.sin((time.time()) * 3) * 8))
         screen.blit(choose, (50, 200))
         screen.blit(map, (100, 240))
         screen.blit(diff, (100, 290))
+        screen.blit(n_map, (100, 330))
+        screen.blit(nn_map, (100, 370))
+
 
         screen.blit(credit, (50, 450))
 
@@ -76,4 +85,4 @@ def menu_viz():
         clock.tick(30) # RUNS AT 60 FPS
 
     pygame.quit()
-    return ()
+    return (None)

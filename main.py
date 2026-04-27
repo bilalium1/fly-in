@@ -11,6 +11,9 @@ def main():
     print("\n[B//] WELCOME TO FLY-IN\n")
     print("[+//] RUNNING PARSING TEST...\n")
     map = menu_viz()
+    if map is None:
+        print("[x//] No file was chosen.")
+        return
     info = parse(map)
     viz(info)
     print(info)

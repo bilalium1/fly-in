@@ -89,5 +89,5 @@ def viz(info):
         pygame.display.flip()
 
         clock.tick(60) # RUNS AT 60 FPS
-
+        
     pygame.quit()
