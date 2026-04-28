@@ -3,30 +3,33 @@ import colorsys
 import math
 import time
 
-def get_furthest_x(curr_scale, info, screen_x, screen_y):
+def get_map_rect(SCALE, Y_SCALE, info):
 
     X = max([nfo[0] for h, nfo in info['hubs'].items()])
     Y = max([nfo[1] for h, nfo in info['hubs'].items()])
-
-    while (X * curr_scale > screen_x - 50):
-        curr_scale -= 5
-
-    while (Y * curr_scale > screen_y - screen_y // 2):
-        curr_scale -= 5
     
-    return curr_scale
+    return ((X * SCALE) + SCALE, (Y * (SCALE + Y_SCALE)) + SCALE)
 
 def viz(info):
     #pygame setup
     hue = 0
 
-    SCALE = 80
+    SCALE = 100
     Y_SCALE = 20
 
     SCREEN_X = 1300
     SCREEN_Y = 800
 
-    SCALE = get_furthest_x(SCALE, info, SCREEN_X, SCREEN_Y)
+    map_rect = get_map_rect(SCALE, Y_SCALE, info)
+
+    while (map_rect[0] > SCREEN_X - 100):
+        SCALE -= 5
+        map_rect = get_map_rect(SCALE, Y_SCALE, info)
+    
+    while (map_rect[1] > SCREEN_Y - 100):
+        SCALE -= 5
+        Y_SCALE -= 1
+        map_rect = get_map_rect(SCALE, Y_SCALE, info)
 
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_X, SCREEN_Y))
@@ -35,38 +38,41 @@ def viz(info):
 
     img = pygame.image.load("crono.jpg").convert()
     img = pygame.transform.scale(img, screen.get_size())
-    img.set_alpha(10)
+    img.set_alpha(50)
     pygame.font.init()
 
     offset = pygame.Vector2(0,0)
 
-    player_pos = pygame.Vector2(100, screen.get_height() / 2)
+    center_pos = pygame.Vector2(SCREEN_X // 2 - map_rect[0] // 2 + SCALE // 3, SCREEN_Y // 2 - map_rect[1] // 2 + SCALE)
+    my_font = pygame.font.SysFont('Montserrat', 20)
+    big_font = pygame.font.SysFont('Montserrat', 40)
 
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
+                    running = False
+
 
         # fill screen with color to wipe away anything from last frame
         screen.blit(img, (0,0))
-        my_font = pygame.font.SysFont('Montserrat Bold', 21)
-        texts = []
-
         offset = pygame.Vector2(math.cos(time.time()) * 10, math.sin(time.time()) * 10)
 
         for cn1, cn2 in info["connections"]:
             start_pos = pygame.Vector2(
-                player_pos.x + info["hubs"][cn1][0] * SCALE,
-                player_pos.y + info["hubs"][cn1][1] * (SCALE + Y_SCALE)) + offset
+                center_pos.x + info["hubs"][cn1][0] * SCALE,
+                center_pos.y + info["hubs"][cn1][1] * (SCALE + Y_SCALE)) + offset
             end_pos = pygame.Vector2(
-                player_pos.x + info["hubs"][cn2][0] * SCALE,
-                player_pos.y + info["hubs"][cn2][1] * (SCALE + Y_SCALE)) + offset
+                center_pos.x + info["hubs"][cn2][0] * SCALE,
+                center_pos.y + info["hubs"][cn2][1] * (SCALE + Y_SCALE)) + offset
             pygame.draw.line(screen, 'black', start_pos, end_pos, SCALE // 40 + 2)
             pygame.draw.line(screen, 'white', start_pos, end_pos, SCALE // 40)
 
         for hub, nfo in info["hubs"].items():
-            x = player_pos.x + (nfo[0] * SCALE)
-            y = player_pos.y + (nfo[1] * (SCALE + Y_SCALE))
+            x = center_pos.x + (nfo[0] * SCALE)
+            y = center_pos.y + (nfo[1] * (SCALE + Y_SCALE))
             pos = pygame.Vector2(x, y) + offset
             color = nfo[2]['color']
             zone = nfo[2]['zone']
@@ -81,7 +87,14 @@ def viz(info):
             else:
                 pygame.draw.circle(screen, color, pos, SCALE // 3)
             text = my_font.render(zone.upper()[0] + "/" + str(max_dones), False, (255,255,255) if color == 'black' else (0,0,0))
-            screen.blit(text, pos + pygame.Vector2(-10,-6))
+            screen.blit(text, pos + pygame.Vector2(-15,-6))
+
+        title = big_font.render(info["map_path"].split("/")[2].replace("_"," ").upper()[:-4], True, (255,255,255))
+        diff = big_font.render(info["map_path"].split("/")[1].upper(), True, (200,200,200))
+        max_drones = my_font.render("Number of Drones : " + str(info["nb_drones"]), True, (150, 150, 180))
+        screen.blit(title, (50, 50))
+        screen.blit(diff, (50, 100))
+        screen.blit(max_drones, (50, 150))
 
 
         # RENDER GAME HERE

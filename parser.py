@@ -13,6 +13,11 @@
 # connection: waypoint1-waypoint2
 # connection: waypoint2-goal
 
+# normal: 1 turn (default)
+# restricted: 2 turns
+# priority: 1 turn (but should be preferred in pathfinding algorithms)
+# blocked: Inaccessible — cannot be entered
+
 zones = [
     "normal",
     "blocked",
@@ -24,12 +29,12 @@ def parse(file_name: str):
 
     info = {"nb_drones": 0,
             "hubs": dict(),
-            "connections": []}
+            "connections": [],
+            "map_path": file_name}
 
     with open(file_name, "r") as f:
         lines = f.readlines()
         for l in lines:
-            print("line: ", l, end="")
 
             if l.startswith("#") or l.startswith("\n"):
                 continue
@@ -64,7 +69,6 @@ def parse(file_name: str):
                             m_sp[1] = "normal"
                         meta.update({"zone": m_sp[1]})
                     elif m_sp[0] == "max_drones":
-                        print("HAAAA: ", m_sp[1])
                         meta.update({"max_drones": int(m_sp[1])})
 
                 info["hubs"].update({name: (x, y, meta)})
