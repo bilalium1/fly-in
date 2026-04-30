@@ -2,21 +2,24 @@ from parser import parse
 from visualizer.pygame_vis import viz
 from visualizer.menu_vis import menu_viz
 from models.drones import Drone
-
-maps = [
-    "maps/easy/01"
-]
+import sys
 
 def main():
 
     print("\n[B//] WELCOME TO FLY-IN\n")
     print("[+//] RUNNING PARSING TEST...\n")
-    map = menu_viz()
-    if map is None:
-        print("[x//] No file was chosen.")
-        return
-    info = parse(map)
+    if len(sys.argv) == 1:
+        print("[+//] Opening Menu...")
+        map = menu_viz()
+        info = parse(map)
+    elif len(sys.argv) == 2:
+        print(f"[+//] Loading file : {sys.argv[1]}")
+        info = parse(sys.argv[1])
 
+    if info is None:
+            print("[x//] No file was chosen.")
+            return
+    
     drones = []
     for i in range(info["nb_drones"]):
         drones.append(Drone(info["hubs"]["start"]))

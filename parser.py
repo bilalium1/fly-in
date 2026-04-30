@@ -34,48 +34,64 @@ def parse(file_name: str):
 
     with open(file_name, "r") as f:
         lines = f.readlines()
-        for l in lines:
+        for i, l in enumerate(lines):
+            try:
+                if l.startswith("#") or l.strip() == "":
+                    continue
 
-            if l.startswith("#") or l.startswith("\n"):
-                continue
+                sp = l.split(":")
+                if len(sp) != 2:
+                    raise ValueError("Invalid colon Identation")
+                    continue
 
-            sp = l.split(":")
-            if len(sp) != 2:
-                continue
+                if sp[0] not in ["nb_drones", "hub", "end_hub", "start_hub", "connection"]:
+                    raise ValueError("Invalid entry (", sp[0], ")")
+                    continue
 
-            if sp[0] not in ["nb_drones", "hub", "end_hub", "start_hub", "connection"]:
-                continue
+                if sp[0] == "nb_drones":
+                    info["nb_drones"] = int(sp[1])
+                    if int(sp[1]) < 1:
+                        raise ValueError("Invalid Number of Drones ( At least 1 Drone )")
 
-            if sp[0] == "nb_drones":
-                info["nb_drones"] = int(sp[1])
+                if sp[0].endswith("hub"):
+                    hub_sp = sp[1].strip().split(" ", 3)
+                    if len(hub_sp) != 4:
+                        raise ValueError("Invalid Hub Data")
+                    name = hub_sp[0]
+                    if " " in name or "-" in name:
+                        raise ValueError("Invalid characters in name")
+                    x = int(hub_sp[1])
+                    y = int(hub_sp[2])
+                    if x < 0 or y < 0:
+                        raise ValueError("Negative Coodinates.")
 
-            if sp[0].endswith("hub"):
-                hub_sp = sp[1].strip().split(" ", 3)
-                print(hub_sp)
-                name = hub_sp[0]
-                x = int(hub_sp[1])
-                y = int(hub_sp[2])
+                    meta = {"color": 'grey', "zone": "normal", "max_drones": 1}
+                    meta_sp = hub_sp[3].strip("[]").split(" ")
+                    for m in meta_sp:
+                        m_sp = m.split("=")
+                        if m_sp[0] not in ["color", "zone", "max_drones"]:
+                            raise ValueError("Invalid Metadata:", m_sp[0])
+                        if m_sp[0] == "color":
+                            meta.update({"color": m_sp[1]})
+                        elif m_sp[0] == "zone":
+                            if m_sp[1] not in zones:
+                                raise ValueError("Invalid Zone Type", m_sp[1])
+                            meta.update({"zone": m_sp[1]})
+                        elif m_sp[0] == "max_drones":
+                            meta.update({"max_drones": int(m_sp[1])})
+                            if int(m_sp[1]) < 1:
+                                raise ValueError("Invalid Max Drones (Greater than 1)")
 
-                meta = {"color": 'grey', "zone": "normal", "max_drones": 1}
-                meta_sp = hub_sp[3].strip("[]").split(" ")
-                print(meta_sp)
-                for m in meta_sp:
-                    m_sp = m.split("=")
-                    print(m_sp)
-                    if m_sp[0] == "color":
-                        meta.update({"color": m_sp[1]})
-                    elif m_sp[0] == "zone":
-                        if m_sp[1] not in zones:
-                            m_sp[1] = "normal"
-                        meta.update({"zone": m_sp[1]})
-                    elif m_sp[0] == "max_drones":
-                        meta.update({"max_drones": int(m_sp[1])})
+                    info["hubs"].update({name: (x, y, meta)})
 
-                info["hubs"].update({name: (x, y, meta)})
-
-            if sp[0] == "connection":
-                con_sp = sp[1].strip().split(" ")[0].split('-')
-                info["connections"].append((con_sp[0], con_sp[1]))
+                if sp[0] == "connection":
+                    con_sp = sp[1].strip().split(" ")[0].split('-')
+                    if len(con_sp) != 2:
+                        raise ValueError("Invalid Connection")
+                    info["connections"].append((con_sp[0], con_sp[1]))
+            except Exception as e:
+                print(f"Error on line {i + 1} :", e)
+                return None
 
     return info
 

@@ -89,11 +89,11 @@ def viz(info):
             text = my_font.render(zone.upper()[0] + "/" + str(max_dones), False, (255,255,255) if color == 'black' else (0,0,0))
             screen.blit(text, pos + pygame.Vector2(-15,-6))
 
-        title = big_font.render(info["map_path"].split("/")[2].replace("_"," ").upper()[:-4], True, (255,255,255))
-        diff = big_font.render(info["map_path"].split("/")[1].upper(), True, (200,200,200))
+        #title = big_font.render(info["map_path"].split("/")[2].replace("_"," ").upper()[:-4], True, (255,255,255))
+        #diff = big_font.render(info["map_path"].split("/")[1].upper(), True, (200,200,200))
         max_drones = my_font.render("Number of Drones : " + str(info["nb_drones"]), True, (150, 150, 180))
-        screen.blit(title, (50, 50))
-        screen.blit(diff, (50, 100))
+        #screen.blit(title, (50, 50))
+        #screen.blit(diff, (50, 100))
         screen.blit(max_drones, (50, 150))
 
 
