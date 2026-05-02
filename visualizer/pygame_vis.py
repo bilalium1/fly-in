@@ -2,6 +2,7 @@ import pygame
 import colorsys
 import math
 import time
+import os
 
 def get_map_rect(SCALE, Y_SCALE, info):
 
@@ -20,6 +21,10 @@ def viz(info):
     SCREEN_X = 1300
     SCREEN_Y = 800
 
+    pygame.mixer.music.stop()
+    pygame.mixer.music.load("sounds/Determination.mp3")
+    pygame.mixer.music.play(loops=-1)
+
     map_rect = get_map_rect(SCALE, Y_SCALE, info)
 
     while (map_rect[0] > SCREEN_X - 100):
@@ -36,16 +41,19 @@ def viz(info):
     clock = pygame.time.Clock()
     running = True
 
-    img = pygame.image.load("crono.jpg").convert()
+    img = pygame.image.load("images/crono.jpg").convert()
     img = pygame.transform.scale(img, screen.get_size())
     img.set_alpha(50)
     pygame.font.init()
 
+    epoch = pygame.image.load("images/epoch.png")
+    epoch = pygame.transform.scale(epoch, (180, 150))
+
     offset = pygame.Vector2(0,0)
 
     center_pos = pygame.Vector2(SCREEN_X // 2 - map_rect[0] // 2 + SCALE // 3, SCREEN_Y // 2 - map_rect[1] // 2 + SCALE)
-    my_font = pygame.font.SysFont('Montserrat', 20)
-    big_font = pygame.font.SysFont('Montserrat', 40)
+    my_font = pygame.font.SysFont('misc/ChronoType.ttf', 20)
+    big_font = pygame.font.SysFont('misc/ChronoType.ttf', 40)
 
     while running:
         for event in pygame.event.get():
@@ -55,12 +63,11 @@ def viz(info):
                 if event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
                     running = False
 
-
-        # fill screen with color to wipe away anything from last frame
+        # fill screen with color to wipe away anything from last frame  
         screen.blit(img, (0,0))
         offset = pygame.Vector2(math.cos(time.time()) * 10, math.sin(time.time()) * 10)
 
-        for cn1, cn2 in info["connections"]:
+        for cn1, cn2, max_link in info["connections"]:
             start_pos = pygame.Vector2(
                 center_pos.x + info["hubs"][cn1][0] * SCALE,
                 center_pos.y + info["hubs"][cn1][1] * (SCALE + Y_SCALE)) + offset
@@ -95,6 +102,7 @@ def viz(info):
         #screen.blit(title, (50, 50))
         #screen.blit(diff, (50, 100))
         screen.blit(max_drones, (50, 150))
+        screen.blit(epoch, (100, 100))
 
 
         # RENDER GAME HERE

@@ -18,6 +18,8 @@
 # priority: 1 turn (but should be preferred in pathfinding algorithms)
 # blocked: Inaccessible — cannot be entered
 
+from pygame.color import THECOLORS
+
 zones = [
     "normal",
     "blocked",
@@ -41,7 +43,7 @@ def parse(file_name: str):
 
                 sp = l.split(":")
                 if len(sp) != 2:
-                    raise ValueError("Invalid colon Identation")
+                    raise ValueError("Invalid Entry")
                     continue
 
                 if sp[0] not in ["nb_drones", "hub", "end_hub", "start_hub", "connection"]:
@@ -62,8 +64,6 @@ def parse(file_name: str):
                         raise ValueError("Invalid characters in name")
                     x = int(hub_sp[1])
                     y = int(hub_sp[2])
-                    if x < 0 or y < 0:
-                        raise ValueError("Negative Coodinates.")
 
                     meta = {"color": 'grey', "zone": "normal", "max_drones": 1}
                     meta_sp = hub_sp[3].strip("[]").split(" ")
@@ -72,6 +72,8 @@ def parse(file_name: str):
                         if m_sp[0] not in ["color", "zone", "max_drones"]:
                             raise ValueError("Invalid Metadata:", m_sp[0])
                         if m_sp[0] == "color":
+                            if m_sp[1] not in set(THECOLORS.keys()).union({"rainbow"}):
+                                raise ValueError("Color doesn't exits in Pygame.")
                             meta.update({"color": m_sp[1]})
                         elif m_sp[0] == "zone":
                             if m_sp[1] not in zones:
@@ -85,10 +87,20 @@ def parse(file_name: str):
                     info["hubs"].update({name: (x, y, meta)})
 
                 if sp[0] == "connection":
-                    con_sp = sp[1].strip().split(" ")[0].split('-')
+                    cn_sp = sp[1].strip().split(" ")
+                    if (len(cn_sp) < 1 or len(cn_sp) > 2):
+                        raise ValueError("Invalid Connection")
+                    con_sp = cn_sp[0].split('-')
+                    if (len(cn_sp) == 2):
+                        max_sp = cn_sp[1]
+                        max_link = max_sp.split("=")[1].strip("]")
+                    else:
+                        max_link = 1
                     if len(con_sp) != 2:
                         raise ValueError("Invalid Connection")
-                    info["connections"].append((con_sp[0], con_sp[1]))
+                    if con_sp[0] not in info["hubs"].keys() or con_sp[1] not in info["hubs"].keys():
+                        raise ValueError("Connected Hub doesn't exist")
+                    info["connections"].append((con_sp[0], con_sp[1], max_link))
             except Exception as e:
                 print(f"Error on line {i + 1} :", e)
                 return None

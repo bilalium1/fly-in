@@ -6,6 +6,9 @@ class Sim():
         self.nb_drones = info["nb_drones"]
         self.hubs = info["hubs"]
         self.cons = info["connections"]
+        self.drones = []
+        self.turns = dict()
+        # Each turn is an entry in which : (drone : Hub)
 
 class Drone():
     def __init__(self, start_hub : Hub):
