@@ -3,6 +3,7 @@ import colorsys
 import math
 import time
 import random
+from visualizer.manoria_vis import manoria
 
 maps = [
     "maps/easy/01_linear_path.txt",
@@ -59,9 +60,12 @@ def menu_viz():
     pygame.mixer.music.load("sounds/menu_music.mp3")
     pygame.mixer.music.set_volume(0.5)
     pygame.mixer.music.play(loops=-1)
+    pygame.mixer.music.set_pos(0.5)
 
     select_sound = pygame.mixer.Sound("sounds/blipSelect.wav")
+    enter_sound = pygame.mixer.Sound("sounds/Enter.wav")
     select_sound.set_volume(0.2)
+    enter_sound.set_volume(0.4)
 
     img = pygame.image.load("images/crono.jpg").convert()
     img = pygame.transform.scale(img, screen.get_size())
@@ -93,7 +97,12 @@ def menu_viz():
                     i = (i - 1) % n_maps
                 current_map = maps[i]
                 if event.key == pygame.K_RETURN:
+                    pygame.mixer.music.fadeout(1000)
+                    enter_sound.play()
+                    time.sleep(1)
                     return (current_map)
+                if event.key == pygame.K_s:
+                    manoria()
                 if event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
                     return (None)
 
@@ -113,6 +122,9 @@ def menu_viz():
         quote = smaller_font.render(chosen_quote, True, (10,10,12))
         credit = small_font.render("B//", True, (10,10,12))
 
+        keys_story = smaller_font.render("[ S ] -> Story", True, (200, 200, 220))
+        keys_quit = smaller_font.render("[ Q ] -> Quit", True, (200, 200, 220))
+
         n_map.set_alpha(100)
         nn_map.set_alpha(70)
         screen.blit(header_hs, (50, 50 + math.sin(time.time() * 3 - 0.5) * 8))
@@ -123,6 +135,13 @@ def menu_viz():
         screen.blit(diff, (100, 290))
         screen.blit(n_map, (100, 330))
         screen.blit(nn_map, (100, 370))
+
+        pygame.draw.rect(screen, (200, 200, 240), (650, 40, 125, 55), 0, 5)
+        pygame.draw.rect(screen, (5, 5, 15), (650, 35, 125, 55), 0, 5)
+
+
+        screen.blit(keys_story, (665, 45))
+        screen.blit(keys_quit, (665, 65))
 
         screen.blit(quote, (50, 100))
         screen.blit(credit, (50, 450))

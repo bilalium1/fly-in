@@ -21,7 +21,7 @@ def viz(info):
     SCREEN_X = 1300
     SCREEN_Y = 800
 
-    pygame.mixer.music.stop()
+    pygame.mixer.music.fadeout(1)
     pygame.mixer.music.load("sounds/Determination.mp3")
     pygame.mixer.music.play(loops=-1)
 
