@@ -21,10 +21,6 @@ def viz(info):
     SCREEN_X = 1300
     SCREEN_Y = 800
 
-    pygame.mixer.music.fadeout(1)
-    pygame.mixer.music.load("sounds/Determination.mp3")
-    pygame.mixer.music.play(loops=-1)
-
     map_rect = get_map_rect(SCALE, Y_SCALE, info)
 
     while (map_rect[0] > SCREEN_X - 100):
@@ -102,7 +98,6 @@ def viz(info):
         #screen.blit(title, (50, 50))
         #screen.blit(diff, (50, 100))
         screen.blit(max_drones, (50, 150))
-        screen.blit(epoch, (100, 100))
 
 
         # RENDER GAME HERE

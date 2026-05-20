@@ -1,8 +1,10 @@
 from parser import parse
 from visualizer.pygame_vis import viz
 from visualizer.menu_vis import menu_viz
-from models.drones import Drone
+from models import Sim
+from my_djikstra import djikstra
 import sys
+
 
 def main():
 
@@ -17,15 +19,16 @@ def main():
         info = parse(sys.argv[1])
 
     if info is None:
-            print("[x//] No file was chosen.")
-            return
-    
-    drones = []
-    for i in range(info["nb_drones"]):
-        drones.append(Drone(info["hubs"]["start"]))
+        print("[x//] No file was chosen.")
+        return
 
-    print("drones : ", drones)
+    s = Sim(info)
+
+    dj = djikstra(s, s.hubs["start"], s.hubs["goal"])
+
+    print("path", dj)
     viz(info)
+
 
 if __name__ == "__main__":
     main()
