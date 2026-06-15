@@ -1,33 +1,47 @@
-from parser import parse
-from visualizer.pygame_vis import viz
-from visualizer.menu_vis import menu_viz
-from models import Sim
-from my_djikstra import djikstra
+"""Entry point for the Fly-in drone routing simulation."""
+
 import sys
 
+from models import Sim
+from parser import parse
+from simulation import assign_paths, run_simulation
 
-def main():
+from visualizer.menu_vis import menu_viz
+from visualizer.pygame_vis import viz
 
-    print("\n[B//] WELCOME TO FLY-IN\n")
-    print("[+//] RUNNING PARSING TEST...\n")
+def main() -> None:
+    """Run the simulation on the map given as a command-line argument."""
+    file_name = ""
     if len(sys.argv) == 1:
-        print("[+//] Opening Menu...")
-        map = menu_viz()
-        info = parse(map)
+        file_name = menu_viz()
+        print("Map Assigned : ", file_name)
     elif len(sys.argv) == 2:
-        print(f"[+//] Loading file : {sys.argv[1]}")
-        info = parse(sys.argv[1])
-
-    if info is None:
-        print("[x//] No file was chosen.")
+        file_name = sys.argv[1]
+    else:
+        print("Invalid Arguments.")
         return
 
-    s = Sim(info)
+    info = parse(file_name)
+    if info is None:
+        print("[x//] Failed to parse map.")
+        return
 
-    dj = djikstra(s, s.hubs["start"], s.hubs["goal"])
+    sim = Sim(info)
 
-    print("path", dj)
-    viz(info)
+    if not assign_paths(sim):
+        print("[x//] No path found from start to end.")
+        return
+
+    output, total_turns = run_simulation(sim)
+
+    print(info)
+
+    viz(info, output)
+
+    for line in output:
+        print(line)
+
+    print(f"\nTotal turns: {total_turns}")
 
 
 if __name__ == "__main__":
