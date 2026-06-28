@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
-from dijkstra import dijkstra
+from dijkstra import assign_drones_to_paths, yen_k_shortest_paths
 from models import Connection, Drone, Hub, Sim
 
 
@@ -42,25 +42,26 @@ def all_delivered(drones: List[Drone]) -> bool:
 
 
 def assign_paths(sim: Sim) -> bool:
-    """Compute and assign a Dijkstra path to every drone.
+    """Assign each drone a path using Yen's k-shortest paths.
 
-    Each drone independently computes the shortest path from start to
-    end (all drones use the same shortest path, since the graph is
-    static — this is the simplest valid strategy and is recomputed per
-    drone to satisfy the "each drone uses Dijkstra" requirement).
+    Finds up to k distinct routes from start to end, scores them by
+    cost and bottleneck capacity, then distributes drones across them
+    round-robin so multiple routes run in parallel.
+
+    The number of candidate paths k scales with drone count so there
+    are always enough route options to spread the fleet.
 
     Args:
         sim: The simulation graph.
 
     Returns:
-        True if every drone got a valid path, False if no path exists.
+        True if at least one valid path exists, False otherwise.
     """
-    for drone in sim.drones:
-        path = dijkstra(sim, sim.start, sim.end)
-        if path is None:
-            return False
-        drone.path = path
-        drone.path_index = 0
+    k = max(sim.nb_drones, 10)
+    paths = yen_k_shortest_paths(sim, sim.start, sim.end, k)
+    if not paths:
+        return False
+    assign_drones_to_paths(sim.drones, paths)
     return True
 
 
@@ -163,9 +164,8 @@ def run_simulation(sim: Sim) -> Tuple[List[str], int]:
             if next_hub.name in (sim.end.name, sim.start.name):
                 zone_cap = max(zone_cap, sim.nb_drones)
 
-            conn_cap = (
-                connection.max_link_capacity
-                - len(connection.current_drones_in_transit)
+            conn_cap = connection.max_link_capacity - len(
+                connection.current_drones_in_transit
             )
 
             used_zone = running_zone.get(next_hub.name, 0)

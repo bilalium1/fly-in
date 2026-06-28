@@ -13,8 +13,9 @@ ZONE_COST = {
 class Connection:
     """A bidirectional connection (edge) between two hubs."""
 
-    def __init__(self, name: str, hub_a: str, hub_b: str,
-                 max_link_capacity: int = 1) -> None:
+    def __init__(
+        self, name: str, hub_a: str, hub_b: str, max_link_capacity: int = 1
+    ) -> None:
         """Initialize a connection.
 
         Args:
@@ -42,8 +43,9 @@ class Connection:
 class Hub:
     """A zone/hub in the network."""
 
-    def __init__(self, name: str, x: int, y: int, zone: str,
-                 max_drones: int, color: str = "grey") -> None:
+    def __init__(
+        self, name: str, x: int, y: int, zone: str, max_drones: int, color: str = "grey"
+    ) -> None:
         """Initialize a hub.
 
         Args:

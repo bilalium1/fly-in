@@ -5,15 +5,16 @@ import sys
 from models import Sim
 from parser import parse
 from simulation import assign_paths, run_simulation
+from visualizer.menu_vis import MenuViz
+from visualizer.sim_vis import SimVis
 
-from visualizer.menu_vis import menu_viz
-from visualizer.pygame_vis import viz
 
 def main() -> None:
     """Run the simulation on the map given as a command-line argument."""
     file_name = ""
     if len(sys.argv) == 1:
-        file_name = menu_viz()
+        game_menu = MenuViz()
+        file_name = game_menu.run()
         print("Map Assigned : ", file_name)
     elif len(sys.argv) == 2:
         file_name = sys.argv[1]
@@ -36,7 +37,9 @@ def main() -> None:
 
     print(info)
 
-    viz(info, output)
+    sim_visual = SimVis(info, output)
+
+    sim_visual.run()
 
     for line in output:
         print(line)
