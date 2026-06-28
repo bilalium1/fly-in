@@ -12,11 +12,7 @@ def get_map_rect(SCALE, Y_SCALE, X_SCALE, info):
 
 
 def get_hub_drones(hub_name, turn):
-
-    print(turn)
     x = [n for n in turn.split(" ") if n.split("-")[1] == hub_name]
-    print(x)
-
     return len(x)
 
 
@@ -314,14 +310,29 @@ class SimVis:
                 drone_num = int(drone.strip("D"))
                 drone_hub = self.info["hubs"][drone_pos.split("-")[1]]
 
-                hub_center = pygame.Vector2(
-                    self.center_pos.x
-                    + drone_hub["x"] * (self.SCALE + self.X_SCALE)
-                    + self.zoom_offset.x,
-                    self.center_pos.y
-                    + drone_hub["y"] * (self.SCALE + self.Y_SCALE)
-                    + self.zoom_offset.y,
-                )
+                if len(drone_pos.split("-")) == 3:
+                    drone_neighbor = self.info["hubs"][drone_pos.split("-")[2]]
+                    hub_center = pygame.Vector2(
+                        self.center_pos.x
+                        + (drone_hub["x"] + drone_neighbor["x"])
+                        / 2
+                        * (self.SCALE + self.X_SCALE)
+                        + self.zoom_offset.x,
+                        self.center_pos.y
+                        + (drone_hub["y"] + drone_neighbor["y"])
+                        / 2
+                        * (self.SCALE + self.Y_SCALE)
+                        + self.zoom_offset.y,
+                    )
+                else:
+                    hub_center = pygame.Vector2(
+                        self.center_pos.x
+                        + drone_hub["x"] * (self.SCALE + self.X_SCALE)
+                        + self.zoom_offset.x,
+                        self.center_pos.y
+                        + drone_hub["y"] * (self.SCALE + self.Y_SCALE)
+                        + self.zoom_offset.y,
+                    )
 
                 positions = self.create_star(
                     len(drone_info),
@@ -365,7 +376,7 @@ class SimVis:
             )
 
             turns_txt = self.my_font.render(
-                "turn : " + str(self.turn + 1) + "/" + str(len(self.turns)),
+                "turn : " + str(self.turn) + "/" + str(len(self.turns) - 1),
                 True,
                 (255, 255, 255),
             )
