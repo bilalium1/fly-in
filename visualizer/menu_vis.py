@@ -1,8 +1,10 @@
 import math
 import random
 import time
+from operator import truediv
 
 import pygame
+
 from visualizer.manoria_vis import manoria
 
 maps = [
@@ -52,7 +54,7 @@ class MenuViz:
         pygame.display.set_caption("Fly-In Trigger")
         pygame.display.set_icon(pygame.image.load("images/chronoIcon.png"))
 
-        pygame.mixer.music.load("sounds/menu_music.mp3")
+        pygame.mixer.music.load("sounds/menu.mp3")
         pygame.mixer.music.set_volume(0.5)
         pygame.mixer.music.play(loops=-1)
         pygame.mixer.music.set_pos(0.5)
@@ -73,12 +75,45 @@ class MenuViz:
         self.big_font = pygame.font.Font("misc/ChronoType.ttf", 50)
         self.small_font = pygame.font.Font("misc/ChronoType.ttf", 32)
         self.smaller_font = pygame.font.Font("misc/ChronoType.ttf", 21)
+        self.smallest_font = pygame.font.Font("misc/ChronoType.ttf", 16)
+
+        self.hue = 0
+
+        self.m_pos = pygame.Vector2(150, 260)
 
         self.i = 0
         self.n_maps = len(maps)
         self.current_map = maps[self.i]
 
         self.chosen_quote = quotes[random.randint(0, len(quotes) - 1)]
+
+    def create_star(
+        self, points, cx, cy, outer_radius, inner_radius, inner: bool, rot: float
+    ):
+        if points < 2:
+            points = 10
+            inner_radius = outer_radius
+        vertices = []
+        if inner:
+            for i in range(points * 2):
+                angle = math.pi / 2 + i * math.pi / points
+                radius = outer_radius if i % 2 == 0 else inner_radius
+
+                x = cx + math.cos(angle + rot) * radius
+                y = cy - math.sin(angle + rot) * radius
+
+                vertices.append((x, y))
+
+        else:
+            for i in range(points):
+                angle = math.pi / 2 + i * (2 * math.pi / points)
+
+                x = cx + math.cos(angle + rot) * outer_radius
+                y = cy - math.sin(angle + rot) * outer_radius
+
+                vertices.append((x, y))
+
+        return vertices
 
     def run(self):
         while self.running:
@@ -88,19 +123,22 @@ class MenuViz:
 
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_DOWN:
+                        self.m_pos += pygame.Vector2(20, 0)
                         self.select_sound.play()
                         self.i = (self.i + 1) % self.n_maps
 
                     if event.key == pygame.K_UP:
+                        self.m_pos += pygame.Vector2(20, 0)
                         self.select_sound.play()
                         self.i = (self.i - 1) % self.n_maps
 
                     self.current_map = maps[self.i]
 
                     if event.key == pygame.K_RETURN:
-                        pygame.mixer.music.fadeout(1000)
+                        pygame.mixer.music.fadeout(300)
                         self.enter_sound.play()
-                        time.sleep(1)
+                        self.enter_sound.set_volume(0.1)
+                        time.sleep(0.3)
                         return self.current_map
 
                     if event.key == pygame.K_s:
@@ -110,7 +148,9 @@ class MenuViz:
                         return None
 
             # draw
-            self.screen.blit(self.img, (0, 0))
+            self.screen.blit(self.img, (0, 0 + math.sin(time.time()) * 8))
+
+            self.hue += 0.01
 
             y = loop_y(time.time(), self.screen.get_height(), speed=0.05)
             self.screen.blit(self.epoch, (450, y - 200))
@@ -139,7 +179,7 @@ class MenuViz:
                 (0, 0, 0),
             )
 
-            nn_map = self.small_font.render(
+            nn_map = self.smaller_font.render(
                 maps[(self.i + 2) % self.n_maps]
                 .split("/")[2][:-4]
                 .replace("_", " ")
@@ -147,6 +187,8 @@ class MenuViz:
                 True,
                 (0, 0, 0),
             )
+
+            self.m_pos = self.m_pos.lerp((150, 260), 0.5)
 
             quote = self.smaller_font.render(self.chosen_quote, True, (10, 10, 12))
             credit = self.small_font.render("B//", True, (10, 10, 12))
@@ -156,6 +198,22 @@ class MenuViz:
             )
             keys_quit = self.smaller_font.render("[ Q ] -> Quit", True, (200, 200, 220))
 
+            star = self.create_star(
+                8, 70, 60 + math.sin(time.time() * 3 - 0.5) * 8, 200, 60, True, self.hue
+            )
+            star2 = self.create_star(
+                8,
+                70,
+                60 + math.sin(time.time() * 3 - 0.5) * 8,
+                50,
+                30,
+                True,
+                self.hue * 2,
+            )
+
+            pygame.draw.polygon(self.screen, "white", star, 3)
+            pygame.draw.polygon(self.screen, "lightblue1", star2, 0)
+
             n_map.set_alpha(100)
             nn_map.set_alpha(70)
 
@@ -164,10 +222,10 @@ class MenuViz:
             self.screen.blit(header, (50, 50 + math.sin(time.time() * 3) * 8))
 
             self.screen.blit(choose, (50, 200))
-            self.screen.blit(map_txt, (100, 240))
-            self.screen.blit(diff, (100, 290))
-            self.screen.blit(n_map, (100, 330))
-            self.screen.blit(nn_map, (100, 370))
+            self.screen.blit(map_txt, self.m_pos)
+            self.screen.blit(diff, self.m_pos + (-100, -30))
+            self.screen.blit(n_map, (130, 300))
+            self.screen.blit(nn_map, (125, 330))
 
             pygame.draw.rect(self.screen, (200, 200, 240), (650, 40, 125, 55), 0, 5)
             pygame.draw.rect(self.screen, (5, 5, 15), (650, 35, 125, 55), 0, 5)

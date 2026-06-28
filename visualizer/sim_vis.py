@@ -57,11 +57,15 @@ class SimVis:
         self.hue = 0
 
         self.SCALE = 100
-        self.Y_SCALE = 20
-        self.X_SCALE = 50
+        self.Y_SCALE = 10
+        self.X_SCALE = 20
 
         self.SCREEN_X = 1600
         self.SCREEN_Y = 900
+
+        pygame.mixer.init()
+        pygame.mixer.music.load("sounds/sim.mp3")
+        # pygame.mixer.music.play()
 
         self.map_rect = get_map_rect(self.SCALE, self.Y_SCALE, self.X_SCALE, self.info)
 
@@ -91,9 +95,6 @@ class SimVis:
         self.img.set_alpha(200)
 
         pygame.font.init()
-
-        self.dorino = pygame.image.load("images/Dorino.gif")
-        self.dorino = pygame.transform.scale(self.dorino, (self.SCALE, self.SCALE))
 
         self.offset = pygame.Vector2(0, 0)
         self.zoom_offset = pygame.Vector2(0, 0)
@@ -193,6 +194,20 @@ class SimVis:
             self.dorino = pygame.image.load("images/Dorino.gif")
             self.dorino = pygame.transform.scale(self.dorino, (self.SCALE, self.SCALE))
 
+            self.medina = pygame.image.load("images/Medina.gif")
+            self.medina = pygame.transform.scale(self.medina, (self.SCALE, self.SCALE))
+
+            self.peak = pygame.image.load("images/peak.gif")
+            self.peak = pygame.transform.scale(
+                self.peak, (self.SCALE // 1.5, self.SCALE // 1.5)
+            )
+
+            self.meteor = pygame.image.load("images/meteor.gif")
+            self.meteor = pygame.transform.scale(self.meteor, (self.SCALE, self.SCALE))
+
+            self.plat = pygame.image.load("images/plat.png")
+            self.plat = pygame.transform.scale(self.plat, (self.SCALE, self.SCALE))
+
             # connections
             for cn1, cn2, max_link in self.info["connections"]:
                 start_pos = (
@@ -239,14 +254,34 @@ class SimVis:
                 pygame.draw.circle(self.screen, "darkolivegreen", pos, self.SCALE // 3)
                 pygame.draw.circle(self.screen, "coral4", pos, self.SCALE // 8)
 
+                # self.screen.blit(self.plat, pos - (self.SCALE // 2, self.SCALE // 2))
+
                 if color == "rainbow":
                     r, g, b = colorsys.hsv_to_rgb(self.hue, 1, 1)
                     color = (int(r * 255), int(g * 255), int(b * 255))
 
-                self.screen.blit(
-                    self.dorino,
-                    pos - pygame.Vector2(self.SCALE // 2, self.SCALE // 2),
-                )
+                if zone == "normal":
+                    self.screen.blit(
+                        self.dorino,
+                        pos - pygame.Vector2(self.SCALE // 2, self.SCALE // 2),
+                    )
+                elif zone == "priority":
+                    self.screen.blit(
+                        self.medina,
+                        pos - pygame.Vector2(self.SCALE // 2 - 4, self.SCALE // 2),
+                    )
+
+                elif zone == "restricted":
+                    self.screen.blit(
+                        self.peak,
+                        pos - pygame.Vector2(self.SCALE // 3, self.SCALE // 1.7),
+                    )
+
+                elif zone == "blocked":
+                    self.screen.blit(
+                        self.meteor,
+                        pos - pygame.Vector2(self.SCALE // 2, self.SCALE // 2),
+                    )
 
                 star = self.create_star(
                     drones,
@@ -307,6 +342,19 @@ class SimVis:
                 # Smoothly move toward the target
                 self.drone_positions[drone] = self.drone_positions[drone].lerp(
                     target_pos, 0.4
+                )
+
+                line_color = drone_hub["color"]
+                if line_color == "rainbow":
+                    r, g, b = colorsys.hsv_to_rgb(self.hue, 1, 1)
+                    line_color = (int(r * 255), int(g * 255), int(b * 255))
+
+                pygame.draw.line(
+                    self.screen,
+                    line_color,
+                    hub_center,
+                    target_pos + (self.SCALE // 4, self.SCALE // 4),
+                    2,
                 )
 
                 self.screen.blit(self.epoch, self.drone_positions[drone])
