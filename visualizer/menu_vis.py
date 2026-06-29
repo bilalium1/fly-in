@@ -214,7 +214,7 @@ class MenuViz:
             keys_quit = self.smaller_font.render("[ Q ] -> Quit", True, (200, 200, 220))
 
             star = self.create_star(
-                8, 70, 60 + math.sin(time.time() * 3 - 0.5) * 8, 200, 60, True, self.hue
+                8, 70, 60 + math.sin(time.time() * 3 - 0.5) * 8, 120, 60, True, self.hue
             )
             star2 = self.create_star(
                 8,
@@ -229,7 +229,7 @@ class MenuViz:
             star3 = self.create_star(8, self.m_pos.x - 50, 280, 90, 65, True, self.hue)
             star4 = self.create_star(8, self.m_pos.x - 50, 280, 50, 40, True, self.hue)
 
-            pygame.draw.polygon(self.screen, "white", star, 3)
+            pygame.draw.polygon(self.screen, "black", star, 2)
             pygame.draw.polygon(self.screen, "lightblue1", star2, 0)
             pygame.draw.polygon(self.screen, "lightblue2", star3, 0)
             pygame.draw.polygon(self.screen, "black", star3, 3)
