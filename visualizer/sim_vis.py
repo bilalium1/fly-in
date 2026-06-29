@@ -61,7 +61,7 @@ class SimVis:
 
         pygame.mixer.init()
         pygame.mixer.music.load("sounds/sim.mp3")
-        # pygame.mixer.music.play()
+        pygame.mixer.music.play()
 
         self.map_rect = get_map_rect(self.SCALE, self.Y_SCALE, self.X_SCALE, self.info)
 
@@ -88,7 +88,10 @@ class SimVis:
 
         self.img = pygame.image.load("images/crono.jpg").convert()
         self.img = pygame.transform.scale(self.img, self.screen.get_size())
-        self.img.set_alpha(200)
+        self.img.set_alpha(255)
+
+        self.epoch_sound = pygame.mixer.Sound("sounds/woosh.wav")
+        self.epoch_sound.set_volume(0.4)
 
         pygame.font.init()
 
@@ -148,12 +151,24 @@ class SimVis:
                         and self.turn + 1 <= len(self.turns) - 1
                     ):
                         self.turn += 1
+                        self.epoch_sound.play()
 
                     if event.key == pygame.K_LEFT and self.turn - 1 >= 0:
                         self.turn -= 1
+                        self.epoch_sound.play()
+
+                    if event.key == pygame.K_r:
+                        self.turn = 0
+                        self.epoch_sound.play()
 
                     if event.key == pygame.K_f:
                         self.show_info = not self.show_info
+
+                    if event.key == pygame.K_m:
+                        if pygame.mixer.music.get_busy():
+                            pygame.mixer.music.pause()
+                        else:
+                            pygame.mixer.music.unpause()
 
             self.screen.blit(self.img, (0, 0) + self.zoom_offset // 40)
 
@@ -214,6 +229,7 @@ class SimVis:
                         + self.info["hubs"][cn1]["y"] * (self.SCALE + self.Y_SCALE),
                     )
                     + self.zoom_offset
+                    + self.offset
                 )
 
                 end_pos = (
@@ -224,6 +240,7 @@ class SimVis:
                         + self.info["hubs"][cn2]["y"] * (self.SCALE + self.Y_SCALE),
                     )
                     + self.zoom_offset
+                    + self.offset
                 )
 
                 pygame.draw.line(
@@ -237,18 +254,36 @@ class SimVis:
             for hub, nfo in self.info["hubs"].items():
                 x = self.center_pos.x + (nfo["x"] * (self.SCALE + self.X_SCALE))
                 y = self.center_pos.y + (nfo["y"] * (self.SCALE + self.Y_SCALE))
-                pos = pygame.Vector2(x, y) + self.zoom_offset
+                pos = pygame.Vector2(x, y) + self.zoom_offset + self.offset
                 drones = get_hub_drones(hub, self.turns[self.turn])
 
                 color = nfo["color"]
                 zone = nfo["zone"]
                 max_dones = nfo["max_drones"]
 
-                pygame.draw.circle(
-                    self.screen, "coral4", pos + pygame.Vector2(0, 8), self.SCALE // 3
+                hexagon_dirt = self.create_star(
+                    8, pos.x, pos.y + 8, self.SCALE // 3, 0, False, 0
                 )
-                pygame.draw.circle(self.screen, "darkolivegreen", pos, self.SCALE // 3)
-                pygame.draw.circle(self.screen, "coral4", pos, self.SCALE // 8)
+                hexagon_grass = self.create_star(
+                    8, pos.x, pos.y, self.SCALE // 3, 0, False, 0
+                )
+                hexagon_grass2 = self.create_star(
+                    8, pos.x, pos.y, self.SCALE // 5, 0, False, 0
+                )
+                hexagon_mount = self.create_star(
+                    8, pos.x, pos.y, self.SCALE // 8, 0, False, 0
+                )
+
+                # pygame.draw.circle(
+                #    self.screen, "coral4", pos + pygame.Vector2(0, 8), self.SCALE // 3
+                # )
+                # pygame.draw.circle(self.screen, "darkolivegreen", pos, self.SCALE // 3)
+                # pygame.draw.circle(self.screen, "coral4", pos, self.SCALE // 8)
+
+                pygame.draw.polygon(self.screen, "coral4", hexagon_dirt)
+                pygame.draw.polygon(self.screen, "darkgreen", hexagon_grass)
+                pygame.draw.polygon(self.screen, "green4", hexagon_grass2)
+                pygame.draw.polygon(self.screen, "coral4", hexagon_mount)
 
                 # self.screen.blit(self.plat, pos - (self.SCALE // 2, self.SCALE // 2))
 
@@ -292,14 +327,14 @@ class SimVis:
 
                 # text
                 zone_name_txt = self.my_font.render(
-                    hub + " [" + zone[0].upper() + str(max_dones) + "]", False, "black"
+                    hub + " [" + zone[0].upper() + str(max_dones) + "]", True, "black"
                 )
 
-                zone_name_txt = pygame.transform.rotate(zone_name_txt, 20)
+                zone_name_txt = pygame.transform.rotate(zone_name_txt, 8)
 
                 if self.show_info:
                     self.screen.blit(
-                        zone_name_txt, pos + pygame.Vector2(-40, self.SCALE // 2)
+                        zone_name_txt, pos + pygame.Vector2(-20, self.SCALE // 2 - 10)
                     )
 
             # drones
@@ -312,26 +347,32 @@ class SimVis:
 
                 if len(drone_pos.split("-")) == 3:
                     drone_neighbor = self.info["hubs"][drone_pos.split("-")[2]]
-                    hub_center = pygame.Vector2(
-                        self.center_pos.x
-                        + (drone_hub["x"] + drone_neighbor["x"])
-                        / 2
-                        * (self.SCALE + self.X_SCALE)
-                        + self.zoom_offset.x,
-                        self.center_pos.y
-                        + (drone_hub["y"] + drone_neighbor["y"])
-                        / 2
-                        * (self.SCALE + self.Y_SCALE)
-                        + self.zoom_offset.y,
+                    hub_center = (
+                        pygame.Vector2(
+                            self.center_pos.x
+                            + (drone_hub["x"] + drone_neighbor["x"])
+                            / 2
+                            * (self.SCALE + self.X_SCALE)
+                            + self.zoom_offset.x,
+                            self.center_pos.y
+                            + (drone_hub["y"] + drone_neighbor["y"])
+                            / 2
+                            * (self.SCALE + self.Y_SCALE)
+                            + self.zoom_offset.y,
+                        )
+                        + self.offset
                     )
                 else:
-                    hub_center = pygame.Vector2(
-                        self.center_pos.x
-                        + drone_hub["x"] * (self.SCALE + self.X_SCALE)
-                        + self.zoom_offset.x,
-                        self.center_pos.y
-                        + drone_hub["y"] * (self.SCALE + self.Y_SCALE)
-                        + self.zoom_offset.y,
+                    hub_center = (
+                        pygame.Vector2(
+                            self.center_pos.x
+                            + drone_hub["x"] * (self.SCALE + self.X_SCALE)
+                            + self.zoom_offset.x,
+                            self.center_pos.y
+                            + drone_hub["y"] * (self.SCALE + self.Y_SCALE)
+                            + self.zoom_offset.y,
+                        )
+                        + self.offset
                     )
 
                 positions = self.create_star(
@@ -390,6 +431,13 @@ class SimVis:
             self.screen.blit(title, (50, 50))
             self.screen.blit(turns_txt, (50, 80))
             self.screen.blit(max_drones, (50, 150))
+
+            # pygame.draw.rect(
+            #    self.screen, (200, 200, 240), (50, self.SCREEN_Y - 200, 350, 160), 0, 5
+            # )
+            # pygame.draw.rect(
+            #    self.screen, (80, 80, 100), (50, self.SCREEN_Y - 210, 340, 150), 0, 5
+            # )
 
             pygame.display.flip()
             self.clock.tick(60)

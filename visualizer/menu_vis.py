@@ -1,7 +1,7 @@
+import colorsys
 import math
 import random
 import time
-from operator import truediv
 
 import pygame
 
@@ -160,9 +160,20 @@ class MenuViz:
             header_hs = self.big_font.render("WELCOME TO FLY-IN", True, (5, 5, 8))
 
             choose = self.small_font.render("// CHOOSE YOUR MAP", True, (10, 10, 12))
-            diff = self.small_font.render(
-                self.current_map.split("/")[1].upper(), True, (10, 10, 12)
-            )
+
+            difficulty = self.current_map.split("/")[1].upper()
+
+            r, g, b = colorsys.hsv_to_rgb(self.hue, 1, 1)
+
+            diff_colors = {
+                "EASY": "green3",
+                "MEDIUM": "orange",
+                "HARD": "crimson",
+                "CHALLENGER": (int(r * 255), int(g * 255), int(b * 255)),
+            }
+
+            diff = self.big_font.render(difficulty, True, diff_colors[difficulty])
+            diff_shadow = self.big_font.render(difficulty, True, "black")
 
             map_txt = self.big_font.render(
                 self.current_map.split("/")[2][:-4].replace("_", " ").upper(),
@@ -188,7 +199,7 @@ class MenuViz:
                 (0, 0, 0),
             )
 
-            self.m_pos = self.m_pos.lerp((150, 260), 0.5)
+            self.m_pos = self.m_pos.lerp((150, 270), 0.2)
 
             quote = self.smaller_font.render(self.chosen_quote, True, (10, 10, 12))
             credit = self.small_font.render("B//", True, (10, 10, 12))
@@ -211,8 +222,11 @@ class MenuViz:
                 self.hue * 2,
             )
 
+            star3 = self.create_star(8, self.m_pos.x - 50, 280, 90, 65, True, self.hue)
             pygame.draw.polygon(self.screen, "white", star, 3)
             pygame.draw.polygon(self.screen, "lightblue1", star2, 0)
+            pygame.draw.polygon(self.screen, "lightblue2", star3, 0)
+            pygame.draw.polygon(self.screen, "black", star3, 2)
 
             n_map.set_alpha(100)
             nn_map.set_alpha(70)
@@ -223,9 +237,10 @@ class MenuViz:
 
             self.screen.blit(choose, (50, 200))
             self.screen.blit(map_txt, self.m_pos)
-            self.screen.blit(diff, self.m_pos + (-100, -30))
-            self.screen.blit(n_map, (130, 300))
-            self.screen.blit(nn_map, (125, 330))
+            self.screen.blit(diff_shadow, self.m_pos + (-100, -35))
+            self.screen.blit(diff, self.m_pos + (-100, -38))
+            self.screen.blit(n_map, (130, 320))
+            self.screen.blit(nn_map, (125, 350))
 
             pygame.draw.rect(self.screen, (200, 200, 240), (650, 40, 125, 55), 0, 5)
             pygame.draw.rect(self.screen, (5, 5, 15), (650, 35, 125, 55), 0, 5)
