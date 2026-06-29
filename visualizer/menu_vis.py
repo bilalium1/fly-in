@@ -37,6 +37,10 @@ quotes = [
     '"Even in despair, there is a path forward." -Schala',
 ]
 
+chrono_font = "misc/ChronoType.ttf"
+pixel_font = "misc/Pixeltype.ttf"
+heav_font = "misc/upheavtt.ttf"
+
 
 def loop_y(t, screen_h, speed=1.0):
     return (t * speed * screen_h) % (screen_h + 500)
@@ -72,10 +76,10 @@ class MenuViz:
         self.epoch.set_alpha(200)
 
         pygame.font.init()
-        self.big_font = pygame.font.Font("misc/ChronoType.ttf", 50)
-        self.small_font = pygame.font.Font("misc/ChronoType.ttf", 32)
-        self.smaller_font = pygame.font.Font("misc/ChronoType.ttf", 21)
-        self.smallest_font = pygame.font.Font("misc/ChronoType.ttf", 16)
+        self.big_font = pygame.font.Font(heav_font, 50)
+        self.small_font = pygame.font.Font(chrono_font, 32)
+        self.smaller_font = pygame.font.Font(pixel_font, 21)
+        self.smallest_font = pygame.font.Font(pixel_font, 16)
 
         self.hue = 0
 
@@ -223,10 +227,13 @@ class MenuViz:
             )
 
             star3 = self.create_star(8, self.m_pos.x - 50, 280, 90, 65, True, self.hue)
+            star4 = self.create_star(8, self.m_pos.x - 50, 280, 50, 40, True, self.hue)
+
             pygame.draw.polygon(self.screen, "white", star, 3)
             pygame.draw.polygon(self.screen, "lightblue1", star2, 0)
             pygame.draw.polygon(self.screen, "lightblue2", star3, 0)
-            pygame.draw.polygon(self.screen, "black", star3, 2)
+            pygame.draw.polygon(self.screen, "black", star3, 3)
+            pygame.draw.polygon(self.screen, diff_colors[difficulty], star4, 3)
 
             n_map.set_alpha(100)
             nn_map.set_alpha(70)

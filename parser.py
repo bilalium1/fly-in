@@ -4,8 +4,19 @@ from typing import Any, Dict, List, Optional, Tuple
 
 ZONES = ["normal", "blocked", "restricted", "priority"]
 COLORS = {
-    "grey", "gray", "red", "green", "blue", "yellow", "black", "white",
-    "orange", "purple", "cyan", "magenta", "rainbow",
+    "grey",
+    "gray",
+    "red",
+    "green",
+    "blue",
+    "yellow",
+    "black",
+    "white",
+    "orange",
+    "purple",
+    "cyan",
+    "magenta",
+    "rainbow",
 }
 
 
