@@ -140,7 +140,7 @@ def _parse_hub(info: Dict[str, Any], key: str, value: str) -> None:
                     raise ValueError("Invalid Max Drones (Greater than 1)")
                 meta["max_drones"] = mdv
 
-    info["hubs"][name] = {"x": x, "y": y, **meta}
+    info["hubs"][name] = {"name": name, "x": x, "y": y, **meta}
 
     if key == "start_hub":
         if info["start"] is not None:

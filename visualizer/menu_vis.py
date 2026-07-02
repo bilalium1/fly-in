@@ -2,6 +2,7 @@ import colorsys
 import math
 import random
 import time
+from pathlib import Path
 
 import pygame
 
@@ -37,13 +38,25 @@ quotes = [
     '"Even in despair, there is a path forward." -Schala',
 ]
 
-chrono_font = "misc/ChronoType.ttf"
-pixel_font = "misc/Pixeltype.ttf"
-heav_font = "misc/upheavtt.ttf"
+chrono_font = "fonts/ChronoType.ttf"
+pixel_font = "fonts/Pixeltype.ttf"
+heav_font = "fonts/upheavtt.ttf"
 
 
 def loop_y(t, screen_h, speed=1.0):
     return (t * speed * screen_h) % (screen_h + 500)
+
+
+def render_text(
+    surface: pygame.Surface,
+    font_path: str,
+    font_size: int,
+    pos: pygame.Vector2,
+    text: str,
+    color: pygame.Color,
+):
+    t_font = pygame.font.Font(font_path, font_size)
+    t_font.render(text, False, color)
 
 
 class MenuViz:
@@ -51,7 +64,7 @@ class MenuViz:
         pygame.init()
         pygame.mixer.init()
 
-        self.screen = pygame.display.set_mode((800, 500))
+        self.screen = pygame.display.set_mode((1000, 500))
         self.clock = pygame.time.Clock()
         self.running = True
 
@@ -159,11 +172,15 @@ class MenuViz:
             y = loop_y(time.time(), self.screen.get_height(), speed=0.05)
             self.screen.blit(self.epoch, (450, y - 200))
 
-            header = self.big_font.render("WELCOME TO FLY-IN", True, (200, 200, 200))
-            header_sh = self.big_font.render("WELCOME TO FLY-IN", True, (50, 50, 80))
-            header_hs = self.big_font.render("WELCOME TO FLY-IN", True, (5, 5, 8))
+            header = self.big_font.render("WELCOME TO FLY-IN", True, "black")
+            header_sh = self.big_font.render("WELCOME TO FLY-IN", True, (100, 120, 150))
+            header_hs = self.big_font.render(
+                "WELCOME TO FLY-IN", True, (5, 5, 8), "lightblue2"
+            )
 
-            choose = self.small_font.render("// CHOOSE YOUR MAP", True, (10, 10, 12))
+            choose = self.small_font.render(
+                "// CHOOSE YOUR MAP", True, (10, 10, 12), "lightblue2"
+            )
 
             difficulty = self.current_map.split("/")[1].upper()
 
@@ -176,13 +193,16 @@ class MenuViz:
                 "CHALLENGER": (int(r * 255), int(g * 255), int(b * 255)),
             }
 
-            diff = self.big_font.render(difficulty, True, diff_colors[difficulty])
-            diff_shadow = self.big_font.render(difficulty, True, "black")
+            diff = self.big_font.render(
+                difficulty, True, "black", diff_colors[difficulty]
+            )
+            diff_shadow = self.big_font.render(difficulty, True, "white")
 
             map_txt = self.big_font.render(
                 self.current_map.split("/")[2][:-4].replace("_", " ").upper(),
                 True,
                 (0, 0, 0),
+                "lightblue2",
             )
 
             n_map = self.small_font.render(
@@ -205,7 +225,9 @@ class MenuViz:
 
             self.m_pos = self.m_pos.lerp((150, 270), 0.2)
 
-            quote = self.smaller_font.render(self.chosen_quote, True, (10, 10, 12))
+            quote = self.smaller_font.render(
+                " " + self.chosen_quote + " ", True, (10, 10, 12)
+            )
             credit = self.small_font.render("B//", True, (10, 10, 12))
 
             keys_story = self.smaller_font.render(
@@ -226,14 +248,16 @@ class MenuViz:
                 self.hue * 2,
             )
 
-            star3 = self.create_star(8, self.m_pos.x - 50, 280, 90, 65, True, self.hue)
-            star4 = self.create_star(8, self.m_pos.x - 50, 280, 50, 40, True, self.hue)
+            star3 = self.create_star(
+                8, self.m_pos.x - 100, 280, 120, 105, True, self.hue
+            )
+            star4 = self.create_star(8, self.m_pos.x - 80, 255, 50, 40, True, self.hue)
 
             pygame.draw.polygon(self.screen, "black", star, 2)
-            pygame.draw.polygon(self.screen, "lightblue1", star2, 0)
+            pygame.draw.polygon(self.screen, "lightblue2", star2, 0)
             pygame.draw.polygon(self.screen, "lightblue2", star3, 0)
-            pygame.draw.polygon(self.screen, "black", star3, 3)
-            pygame.draw.polygon(self.screen, diff_colors[difficulty], star4, 3)
+            pygame.draw.polygon(self.screen, "black", star3, 5)
+            pygame.draw.polygon(self.screen, diff_colors[difficulty], star4, 0)
 
             n_map.set_alpha(100)
             nn_map.set_alpha(70)
@@ -242,10 +266,10 @@ class MenuViz:
             self.screen.blit(header_sh, (50, 50 + math.sin(time.time() * 3 - 0.2) * 8))
             self.screen.blit(header, (50, 50 + math.sin(time.time() * 3) * 8))
 
-            self.screen.blit(choose, (50, 200))
+            self.screen.blit(choose, (50, 180))
             self.screen.blit(map_txt, self.m_pos)
-            self.screen.blit(diff_shadow, self.m_pos + (-100, -35))
             self.screen.blit(diff, self.m_pos + (-100, -38))
+            self.screen.blit(diff_shadow, self.m_pos + (-100, -35))
             self.screen.blit(n_map, (130, 320))
             self.screen.blit(nn_map, (125, 350))
 

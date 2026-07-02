@@ -82,7 +82,12 @@ class SimVis:
             self.SCALE = 30
 
         pygame.init()
-        self.screen = pygame.display.set_mode((self.SCREEN_X, self.SCREEN_Y))
+        self.screen = pygame.display.set_mode(
+            (self.SCREEN_X, self.SCREEN_Y), pygame.SRCALPHA
+        )
+        self.info_layer = pygame.Surface(
+            (self.SCREEN_X, self.SCREEN_Y), pygame.SRCALPHA
+        )
         self.clock = pygame.time.Clock()
         self.running = True
 
@@ -103,8 +108,8 @@ class SimVis:
             self.SCREEN_Y // 2 - self.map_rect[1] // 2 + self.SCALE,
         )
 
-        self.my_font = pygame.font.Font("misc/ChronoType.ttf", 20)
-        self.big_font = pygame.font.Font("misc/ChronoType.ttf", 48)
+        self.my_font = pygame.font.Font("fonts/Pixeltype.ttf", 25)
+        self.big_font = pygame.font.Font("fonts/ChronoType.ttf", 48)
 
         self.turn = 0
 
@@ -202,6 +207,12 @@ class SimVis:
             )
             self.epoch = pygame.transform.rotate(self.epoch, 90)
 
+            self.blackbird = pygame.image.load("images/blackbird.gif")
+            self.blackbird = pygame.transform.scale(
+                self.blackbird, (self.SCALE // 1.7, self.SCALE // 1.7)
+            )
+            self.blackbird = pygame.transform.rotate(self.blackbird, -90)
+
             self.dorino = pygame.image.load("images/Dorino.gif")
             self.dorino = pygame.transform.scale(self.dorino, (self.SCALE, self.SCALE))
 
@@ -218,6 +229,8 @@ class SimVis:
 
             self.plat = pygame.image.load("images/plat.png")
             self.plat = pygame.transform.scale(self.plat, (self.SCALE, self.SCALE))
+
+            self.info_layer.fill((0, 0, 0, 0))
 
             # connections
             for cn1, cn2, max_link in self.info["connections"]:
@@ -243,12 +256,24 @@ class SimVis:
                     + self.offset
                 )
 
+                center_coords = (
+                    (start_pos.x + end_pos.x) / 2,
+                    (start_pos.y + end_pos.y) / 2,
+                )
+
                 pygame.draw.line(
                     self.screen, "chocolate4", start_pos, end_pos, self.SCALE // 14 + 5
                 )
                 pygame.draw.line(
                     self.screen, "chocolate3", start_pos, end_pos, self.SCALE // 14
                 )
+
+                conn_txt = self.my_font.render(
+                    "max:" + str(max_link), False, "lightblue2", "black"
+                )
+
+                if self.show_info:
+                    self.info_layer.blit(conn_txt, center_coords)
 
             # hubs
             for hub, nfo in self.info["hubs"].items():
@@ -327,13 +352,16 @@ class SimVis:
 
                 # text
                 zone_name_txt = self.my_font.render(
-                    hub + " [" + zone[0].upper() + str(max_dones) + "]", True, "black"
+                    hub + " [" + zone[0].upper() + str(max_dones) + "]",
+                    True,
+                    "lightblue2",
+                    "black",
                 )
 
-                zone_name_txt = pygame.transform.rotate(zone_name_txt, 8)
+                # zone_name_txt = pygame.transform.rotate(zone_name_txt, 0)
 
                 if self.show_info:
-                    self.screen.blit(
+                    self.info_layer.blit(
                         zone_name_txt, pos + pygame.Vector2(-20, self.SCALE // 2 - 10)
                     )
 
@@ -409,7 +437,21 @@ class SimVis:
                     2,
                 )
 
-                self.screen.blit(self.epoch, self.drone_positions[drone])
+                if drone_num % 2 == 0:
+                    ship = self.blackbird
+                else:
+                    ship = self.epoch
+
+                self.screen.blit(ship, self.drone_positions[drone])
+                drone_text = self.my_font.render(
+                    drone + " [" + str(drone_hub["name"]) + "]",
+                    False,
+                    "lightblue2",
+                    "black",
+                )
+
+                if self.show_info:
+                    self.info_layer.blit(drone_text, target_pos)
 
             # text
             title = self.big_font.render(
@@ -431,6 +473,7 @@ class SimVis:
             self.screen.blit(title, (50, 50))
             self.screen.blit(turns_txt, (50, 80))
             self.screen.blit(max_drones, (50, 150))
+            self.screen.blit(self.info_layer, (0, 0))
 
             # pygame.draw.rect(
             #    self.screen, (200, 200, 240), (50, self.SCREEN_Y - 200, 350, 160), 0, 5
