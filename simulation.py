@@ -85,7 +85,7 @@ def run_simulation(sim: Sim) -> Tuple[List[str], int]:
     simulation_output: List[str] = []
 
     # Initial placement: all drones begin at the start zone.
-    initial_line = " ".join(f"D{drone.id}-{sim.start.name}" for drone in drones)
+    initial_line = " ".join(f"D{d.id}-{sim.start.name}" for d in drones)
     if initial_line:
         simulation_output.append(initial_line)
 

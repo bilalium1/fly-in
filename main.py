@@ -11,6 +11,8 @@ from visualizer.sim_vis import SimVis
 
 def main() -> None:
     """Run the simulation on the map given as a command-line argument."""
+
+    print("\n[B//] WELCOME TO FLY-IN: \n")
     file_name = ""
     if len(sys.argv) == 1:
         game_menu = MenuViz()

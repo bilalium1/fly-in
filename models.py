@@ -44,7 +44,8 @@ class Hub:
     """A zone/hub in the network."""
 
     def __init__(
-        self, name: str, x: int, y: int, zone: str, max_drones: int, color: str = "grey"
+        self, name: str, x: int, y: int, zone: str, max_drones: int,
+        color: str = "grey"
     ) -> None:
         """Initialize a hub.
 
@@ -156,5 +157,6 @@ class Sim:
         """Return list of (neighbor_hub, connection) pairs for a hub."""
         result = []
         for neighbor_name, conn_name in hub.conn.items():
-            result.append((self.hubs[neighbor_name], self.connections[conn_name]))
+            result.append(
+                (self.hubs[neighbor_name], self.connections[conn_name]))
         return result

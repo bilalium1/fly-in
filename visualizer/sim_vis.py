@@ -1,27 +1,27 @@
 import colorsys
 import math
 import time
-
 import pygame
+from typing import Dict, List
 
 
-def get_map_rect(SCALE, Y_SCALE, X_SCALE, info):
+def get_map_rect(SCALE: int, Y_SCALE: int, X_SCALE: int, info: Dict) -> tuple:
     X = max([nfo["x"] for h, nfo in info["hubs"].items()])
     Y = max([nfo["y"] for h, nfo in info["hubs"].items()])
     return ((X * (SCALE + X_SCALE)) + SCALE, (Y * (SCALE + Y_SCALE)) + SCALE)
 
 
-def get_hub_drones(hub_name, turn):
+def get_hub_drones(hub_name: str, turn: str) -> int:
     x = [n for n in turn.split(" ") if n.split("-")[1] == hub_name]
     return len(x)
 
 
 class SimVis:
-    def __init__(self, info, turns):
+    def __init__(self, info: Dict, turns: List) -> None:
         self.info = info
         self.turns = turns
         self.show_info = False
-        self.drone_positions = {}
+        self.drone_positions: Dict = {}
         self.drone_colors = [
             pygame.Color(255, 75, 75),  # red
             pygame.Color(255, 165, 0),  # orange
@@ -50,7 +50,7 @@ class SimVis:
             pygame.Color(180, 180, 180),  # gray
         ]
 
-        self.hue = 0
+        self.hue = 0.0
 
         self.SCALE = 100
         self.Y_SCALE = 10
@@ -63,7 +63,8 @@ class SimVis:
         pygame.mixer.music.load("sounds/sim.mp3")
         pygame.mixer.music.play()
 
-        self.map_rect = get_map_rect(self.SCALE, self.Y_SCALE, self.X_SCALE, self.info)
+        self.map_rect = get_map_rect(
+            self.SCALE, self.Y_SCALE, self.X_SCALE, self.info)
 
         while self.map_rect[0] > self.SCREEN_X - 100:
             self.SCALE -= 5
@@ -114,8 +115,10 @@ class SimVis:
         self.turn = 0
 
     def create_star(
-        self, points, cx, cy, outer_radius, inner_radius, inner: bool, rot: float
-    ):
+        self, points: int, cx: float, cy: float,
+        outer_radius: int, inner_radius: int,
+        inner: bool, rot: float
+    ) -> List:
         if points < 2:
             points = 10
             inner_radius = outer_radius
@@ -141,7 +144,7 @@ class SimVis:
 
         return vertices
 
-    def run(self):
+    def run(self) -> None:
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -214,10 +217,12 @@ class SimVis:
             self.blackbird = pygame.transform.rotate(self.blackbird, -90)
 
             self.dorino = pygame.image.load("images/Dorino.gif")
-            self.dorino = pygame.transform.scale(self.dorino, (self.SCALE, self.SCALE))
+            self.dorino = pygame.transform.scale(
+                self.dorino, (self.SCALE, self.SCALE))
 
             self.medina = pygame.image.load("images/Medina.gif")
-            self.medina = pygame.transform.scale(self.medina, (self.SCALE, self.SCALE))
+            self.medina = pygame.transform.scale(
+                self.medina, (self.SCALE, self.SCALE))
 
             self.peak = pygame.image.load("images/peak.gif")
             self.peak = pygame.transform.scale(
@@ -225,10 +230,8 @@ class SimVis:
             )
 
             self.meteor = pygame.image.load("images/meteor.gif")
-            self.meteor = pygame.transform.scale(self.meteor, (self.SCALE, self.SCALE))
-
-            self.plat = pygame.image.load("images/plat.png")
-            self.plat = pygame.transform.scale(self.plat, (self.SCALE, self.SCALE))
+            self.meteor = pygame.transform.scale(
+                self.meteor, (self.SCALE, self.SCALE))
 
             self.info_layer.fill((0, 0, 0, 0))
 
@@ -237,9 +240,11 @@ class SimVis:
                 start_pos = (
                     pygame.Vector2(
                         self.center_pos.x
-                        + self.info["hubs"][cn1]["x"] * (self.SCALE + self.X_SCALE),
+                        + self.info["hubs"][cn1]["x"] * (
+                            self.SCALE + self.X_SCALE),
                         self.center_pos.y
-                        + self.info["hubs"][cn1]["y"] * (self.SCALE + self.Y_SCALE),
+                        + self.info["hubs"][cn1]["y"] * (
+                            self.SCALE + self.Y_SCALE),
                     )
                     + self.zoom_offset
                     + self.offset
@@ -248,9 +253,11 @@ class SimVis:
                 end_pos = (
                     pygame.Vector2(
                         self.center_pos.x
-                        + self.info["hubs"][cn2]["x"] * (self.SCALE + self.X_SCALE),
+                        + self.info["hubs"][cn2]["x"] * (
+                            self.SCALE + self.X_SCALE),
                         self.center_pos.y
-                        + self.info["hubs"][cn2]["y"] * (self.SCALE + self.Y_SCALE),
+                        + self.info["hubs"][cn2]["y"] * (
+                            self.SCALE + self.Y_SCALE),
                     )
                     + self.zoom_offset
                     + self.offset
@@ -262,10 +269,12 @@ class SimVis:
                 )
 
                 pygame.draw.line(
-                    self.screen, "chocolate4", start_pos, end_pos, self.SCALE // 14 + 5
+                    self.screen, "chocolate4", start_pos,
+                    end_pos, self.SCALE // 14 + 5
                 )
                 pygame.draw.line(
-                    self.screen, "chocolate3", start_pos, end_pos, self.SCALE // 14
+                    self.screen, "chocolate3", start_pos,
+                    end_pos, self.SCALE // 14
                 )
 
                 conn_txt = self.my_font.render(
@@ -277,8 +286,10 @@ class SimVis:
 
             # hubs
             for hub, nfo in self.info["hubs"].items():
-                x = self.center_pos.x + (nfo["x"] * (self.SCALE + self.X_SCALE))
-                y = self.center_pos.y + (nfo["y"] * (self.SCALE + self.Y_SCALE))
+                x = self.center_pos.x + (
+                    nfo["x"] * (self.SCALE + self.X_SCALE))
+                y = self.center_pos.y + (
+                    nfo["y"] * (self.SCALE + self.Y_SCALE))
                 pos = pygame.Vector2(x, y) + self.zoom_offset + self.offset
                 drones = get_hub_drones(hub, self.turns[self.turn])
 
@@ -299,18 +310,10 @@ class SimVis:
                     8, pos.x, pos.y, self.SCALE // 8, 0, False, 0
                 )
 
-                # pygame.draw.circle(
-                #    self.screen, "coral4", pos + pygame.Vector2(0, 8), self.SCALE // 3
-                # )
-                # pygame.draw.circle(self.screen, "darkolivegreen", pos, self.SCALE // 3)
-                # pygame.draw.circle(self.screen, "coral4", pos, self.SCALE // 8)
-
                 pygame.draw.polygon(self.screen, "coral4", hexagon_dirt)
                 pygame.draw.polygon(self.screen, "darkgreen", hexagon_grass)
                 pygame.draw.polygon(self.screen, "green4", hexagon_grass2)
                 pygame.draw.polygon(self.screen, "coral4", hexagon_mount)
-
-                # self.screen.blit(self.plat, pos - (self.SCALE // 2, self.SCALE // 2))
 
                 if color == "rainbow":
                     r, g, b = colorsys.hsv_to_rgb(self.hue, 1, 1)
@@ -324,13 +327,15 @@ class SimVis:
                 elif zone == "priority":
                     self.screen.blit(
                         self.medina,
-                        pos - pygame.Vector2(self.SCALE // 2 - 4, self.SCALE // 2),
+                        pos - pygame.Vector2(
+                            self.SCALE // 2 - 4, self.SCALE // 2),
                     )
 
                 elif zone == "restricted":
                     self.screen.blit(
                         self.peak,
-                        pos - pygame.Vector2(self.SCALE // 3, self.SCALE // 1.7),
+                        pos - pygame.Vector2(
+                            self.SCALE // 3, self.SCALE // 1.7),
                     )
 
                 elif zone == "blocked":
@@ -362,7 +367,8 @@ class SimVis:
 
                 if self.show_info:
                     self.info_layer.blit(
-                        zone_name_txt, pos + pygame.Vector2(-20, self.SCALE // 2 - 10)
+                        zone_name_txt, pos + pygame.Vector2(
+                            -20, self.SCALE // 2 - 10)
                     )
 
             # drones
@@ -455,7 +461,8 @@ class SimVis:
 
             # text
             title = self.big_font.render(
-                self.info["map_path"].split("/")[-1].upper(), True, (255, 255, 255)
+                self.info["map_path"].split("/")[-1].upper(),
+                True, (255, 255, 255)
             )
 
             turns_txt = self.my_font.render(
@@ -474,13 +481,6 @@ class SimVis:
             self.screen.blit(turns_txt, (50, 80))
             self.screen.blit(max_drones, (50, 150))
             self.screen.blit(self.info_layer, (0, 0))
-
-            # pygame.draw.rect(
-            #    self.screen, (200, 200, 240), (50, self.SCREEN_Y - 200, 350, 160), 0, 5
-            # )
-            # pygame.draw.rect(
-            #    self.screen, (80, 80, 100), (50, self.SCREEN_Y - 210, 340, 150), 0, 5
-            # )
 
             pygame.display.flip()
             self.clock.tick(60)
