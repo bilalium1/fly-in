@@ -7,7 +7,7 @@ from typing import List, Union
 
 import pygame as pg
 
-from visualizer.manoria_vis import manoria
+from visualizer.manoria_vis import Menoria
 
 quotes = [
     '"But... the future refused to change." -Magus',
@@ -161,7 +161,8 @@ class MenuViz:
             return self.current_map
 
         if key == pg.K_s:
-            manoria()
+            m = Menoria("images/story.jpg", "sounds/manoria.mp3")
+            m.run()
 
         if key in (pg.K_q, pg.K_ESCAPE):
             return ""

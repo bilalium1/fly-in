@@ -1,94 +1,76 @@
 import pygame
-import sys
-import time
-
-# --- CONFIG ---
-WIDTH, HEIGHT = 1000, 600
-FPS = 60
-
-BG_IMAGE = "images/story.jpg"   # your image
-MUSIC_FILE = "sounds/manoria_orch.mp3"      # your music
-FONT_FILE = "misc/ChronoType.ttf"              # or "font.ttf"
-FONT_SIZE = 24
-SCROLL_SPEED = 0.18
-
-# --- INIT ---
-
-with open("misc/chrono_story.txt", "r") as f:
-    lines = f.readlines()
 
 
-def manoria() -> None:
-    pygame.init()
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("Chrono Story")
-    clock = pygame.time.Clock()
+class Menoria:
+    def __init__(self, gif_path: str, music_path: str) -> None:
+        # pygame.init()/mixer.init() are safe to call again even if the
+        # host app already called them - they no-op if already running.
+        pygame.init()
+        pygame.mixer.init()
 
-    # background
-    bg = pygame.image.load(BG_IMAGE)
-    bg = pygame.transform.scale(bg, (WIDTH, HEIGHT))
+        # Reuse the caller's existing display window if one is open
+        # (e.g. launched mid-menu). Only create a fresh one if this
+        # screen is being run completely standalone.
+        existing_surface = pygame.display.get_surface()
+        if existing_surface is not None:
+            self.screen = existing_surface
+            self.owns_display = False
+        else:
+            self.screen = pygame.display.set_mode((800, 600))
+            pygame.display.set_caption("Thank You")
+            self.owns_display = True
 
-    # font
-    font = pygame.font.Font(FONT_FILE, FONT_SIZE)
+        self.SCREEN_X, self.SCREEN_Y = self.screen.get_size()
+        self.clock = pygame.time.Clock()
+        self.running = True
 
-    # music
-    pygame.mixer.init()
-    pygame.mixer.music.load(MUSIC_FILE)
-    pygame.mixer.music.play(-1)
+        self.gif = pygame.image.load(gif_path)
+        self.gif = pygame.transform.scale(self.gif, (self.SCREEN_X, self.SCREEN_Y))
 
-    # prepare text surfaces
-    text_surfaces = [font.render(
-        line, True, (255, 255, 255)) for line in lines]
+        pygame.mixer.music.load(music_path)
+        pygame.mixer.music.set_volume(0.5)
+        pygame.mixer.music.play(loops=-1)
 
-    # starting y (bottom of screen)
-    y_offset = float(HEIGHT)
+        pygame.font.init()
+        self.font = pygame.font.Font("fonts/Pixeltype.ttf", 32)
 
-    smaller_font = pygame.font.Font('misc/ChronoType.ttf', 21)
+        self.thanks_txt = self.font.render(
+            "Thank you for playing.", True, (255, 255, 255)
+        )
+        self.thanks_pos = (
+            self.SCREEN_X // 2 - self.thanks_txt.get_width() // 2,
+            self.SCREEN_Y // 2,
+        )
 
-    keys_story = smaller_font.render("[ R ] -> Return", True, (200, 200, 220))
-    keys_quit = smaller_font.render("[ Q ] -> Quit", True, (200, 200, 220))
+    def run(self) -> None:
+        while self.running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
 
-    # --- LOOP ---
-    running = True
-    while running:
-        clock.tick(FPS)
+                elif event.type == pygame.KEYDOWN:
+                    if event.key in (pygame.K_q, pygame.K_ESCAPE, pygame.K_RETURN):
+                        self.running = False
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_r:
-                    from visualizer.menu_vis import MenuViz
-                    pygame.mixer.music.fadeout(1000)
-                    time.sleep(1)
-                    pygame.quit()
-                    MenuViz()
+            self.screen.blit(self.gif, (0, 0))
+            self.screen.blit(self.thanks_txt, self.thanks_pos)
 
-        # draw background
-        screen.blit(bg, (0, 0))
+            pygame.display.flip()
+            self.clock.tick(30)
 
-        # draw scrolling text
-        # draw scrolling text (centered)
-        y = y_offset
-        for surf in text_surfaces:
-            rect = surf.get_rect(center=(WIDTH // 2, y))
-            screen.blit(surf, rect)
-            y += surf.get_height() + 10
+        pygame.mixer.music.stop()
 
-        # move text upward
-        y_offset -= SCROLL_SPEED
+        # Only fully shut down pygame if we created the display ourselves.
+        # If a parent screen (e.g. the menu) is still using pygame, tearing
+        # it down here would break that screen's next render/blit call.
+        if self.owns_display:
+            pygame.quit()
 
-        # reset when finished
-        if y < 0:
-            y_offset = HEIGHT
 
-        pygame.draw.rect(screen, (200, 200, 240), (850, 40, 125, 55), 0, 5)
-        pygame.draw.rect(screen, (5, 5, 15), (850, 35, 125, 55), 0, 5)
+def manoria(gif_path: str = "images/credits.gif",
+            music_path: str = "sounds/credits.mp3") -> None:
+    Menoria(gif_path, music_path).run()
 
-        screen.blit(keys_story, (865, 45))
-        screen.blit(keys_quit, (865, 65))
 
-        pygame.display.flip()
-
-    pygame.quit()
-    sys.exit()
+if __name__ == "__main__":
+    manoria()
