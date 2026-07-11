@@ -1,6 +1,8 @@
 # Fly-in Drones
 
-*This project has been created as part of the 42 curriculum by <your_login>.*
+*This project has been created as part of the 42 curriculum by <blemrabe>.*
+
+![tails_flying](misc/chrono.gif)
 
 ## Description
 This project simulates a fleet of drones navigating through a network of hubs while optimizing the total number of turns required to reach their destinations.
