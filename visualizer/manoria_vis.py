@@ -25,7 +25,8 @@ class Menoria:
         self.running = True
 
         self.gif = pygame.image.load(gif_path)
-        self.gif = pygame.transform.scale(self.gif, (self.SCREEN_X, self.SCREEN_Y))
+        self.gif = pygame.transform.scale(
+            self.gif, (self.SCREEN_X, self.SCREEN_Y))
 
         pygame.mixer.music.load(music_path)
         pygame.mixer.music.set_volume(0.5)
@@ -49,7 +50,7 @@ class Menoria:
                     self.running = False
 
                 elif event.type == pygame.KEYDOWN:
-                    if event.key in (pygame.K_q, pygame.K_ESCAPE, pygame.K_RETURN):
+                    if event.key in (pygame.K_q, pygame.K_ESCAPE):
                         self.running = False
 
             self.screen.blit(self.gif, (0, 0))

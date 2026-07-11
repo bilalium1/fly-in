@@ -276,8 +276,8 @@ class SimVis:
             pygame.draw.polygon(self.screen, color, star)
 
             if self.show_info:
-                label = hub + " [" + zone[0].upper() + str(nfo["max_drones"])
-                + "]"
+                label = hub + "[" + zone[0].upper()
+                label += str(nfo["max_drones"]) + "]"
                 zone_txt = self.my_font.render(
                     label, True, "lightblue2", "black"
                 )
