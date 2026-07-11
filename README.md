@@ -1,6 +1,6 @@
 # Fly-in Drones
 
-*This project has been created as part of the 42 curriculum by <blemrabe>.*
+*This project has been created as part of the 42 curriculum by blemrabe.*
 
 ![tails_flying](misc/chrono.gif)
 
