@@ -4,6 +4,7 @@ VENV = .venv
 PYTHON = $(VENV)/bin/python
 PIP = $(VENV)/bin/pip
 MAIN = main.py
+SRC = dijkstra.py models.py parser.py simulation.py visualizer/
 
 install:
 	python3 -m venv $(VENV)
@@ -24,8 +25,8 @@ clean:
 	rm -rf $(VENV)
 
 lint:
-	$(VENV)/bin/flake8 .
-	$(VENV)/bin/mypy . \
+	$(VENV)/bin/flake8 $(MAIN) $(SRC)
+	$(VENV)/bin/mypy $(MAIN) $(SRC) \
 		--warn-return-any \
 		--warn-unused-ignores \
 		--ignore-missing-imports \
@@ -33,5 +34,5 @@ lint:
 		--check-untyped-defs
 
 lint-strict:
-	$(VENV)/bin/flake8 .
-	$(VENV)/bin/mypy . --strict
+	$(VENV)/bin/flake8 $(MAIN) $(SRC)
+	$(VENV)/bin/mypy $(MAIN) $(SRC) --strict
