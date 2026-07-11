@@ -1,6 +1,6 @@
 .PHONY: install run debug clean lint lint-strict
 
-VENV = .venv
+VENV = .sega
 PYTHON = $(VENV)/bin/python
 PIP = $(VENV)/bin/pip
 MAIN = main.py
