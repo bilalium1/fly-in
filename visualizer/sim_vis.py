@@ -166,6 +166,8 @@ class SimVis:
                         self.epoch_sound.play()
 
                     if event.key == pygame.K_r:
+                        self.zoom_offset.x = 0
+                        self.zoom_offset.y = 0
                         self.turn = 0
                         self.epoch_sound.play()
 
@@ -481,6 +483,27 @@ class SimVis:
             self.screen.blit(turns_txt, (50, 80))
             self.screen.blit(max_drones, (50, 150))
             self.screen.blit(self.info_layer, (0, 0))
+
+            # ===== CONTROLS MENU (BOTTOM LEFT) =====
+            menu_texts = [
+                "[ > ] - NEXT TURN",
+                "[ < ] - PREVIOUS TURN",
+                "[ C ] - ZOOM IN",
+                "[ X ] - ZOOM OUT",
+                "[ WASD ] - MOVE CAMERA",
+                "[ F ] - DISPLAY INFORMATION",
+                "[ R ] - RESET SIMULATION",
+            ]
+
+            # low saturated dark greyish blue
+            menu_color = (70, 85, 110)
+
+            start_x = 20
+            start_y = self.SCREEN_Y - (len(menu_texts) * 25) - 20
+
+            for i, text in enumerate(menu_texts):
+                txt_surface = self.my_font.render(text, True, menu_color)
+                self.screen.blit(txt_surface, (start_x, start_y + i * 25))
 
             pygame.display.flip()
             self.clock.tick(60)
