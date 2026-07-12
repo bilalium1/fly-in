@@ -39,6 +39,8 @@ DIFF_COLORS: dict[str, Color] = {
     "EASY": "green3",
     "MEDIUM": "orange",
     "HARD": "crimson",
+    "ADNANE": "red",
+    "SUN_WILL": "gold"
 }
 
 
@@ -161,7 +163,7 @@ class MenuViz:
             return self.current_map
 
         if key == pg.K_s:
-            m = Menoria("images/story.jpg", "sounds/manoria.mp3")
+            m = Menoria("images/story.jpg", "sounds/manoria_orch.mp3")
             m.run()
 
         if key in (pg.K_q, pg.K_ESCAPE):

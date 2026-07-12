@@ -33,12 +33,11 @@ def dijkstra(
     prev: Dict[str, Optional[str]] = {name: None for name in sim.hubs}
     dist[start.name] = 0.0
 
-    counter = 0
-    heap: List[Tuple[float, int, str]] = [(0.0, counter, start.name)]
+    heap: List[Tuple[float, str]] = [(0.0, start.name)]
     visited: Set[str] = set()
 
     while heap:
-        current_cost, _, current_name = heapq.heappop(heap)
+        current_cost, current_name = heapq.heappop(heap)
 
         if current_name in visited:
             continue
@@ -64,8 +63,7 @@ def dijkstra(
             if new_cost < dist[neighbor.name]:
                 dist[neighbor.name] = new_cost
                 prev[neighbor.name] = current_name
-                counter += 1
-                heapq.heappush(heap, (new_cost, counter, neighbor.name))
+                heapq.heappush(heap, (new_cost, neighbor.name))
 
     if dist[end.name] == float("inf"):
         return None
@@ -83,26 +81,10 @@ def dijkstra(
 
 
 def path_cost(path: List[Hub]) -> float:
-    """Compute total movement cost of a path (cost charged on destination).
-
-    Args:
-        path: Ordered list of hubs from start to end.
-
-    Returns:
-        Total float cost.
-    """
     return sum(float(ZONE_COST.get(h.zone, 999)) for h in path[1:])
 
 
 def path_bottleneck(path: List[Hub]) -> int:
-    """Return minimum max_drones capacity along a path (excluding start/end).
-
-    Args:
-        path: Ordered list of hubs.
-
-    Returns:
-        Minimum hub capacity, or 1 if path is trivially short.
-    """
     interior = path[1:-1]
     if not interior:
         return 1

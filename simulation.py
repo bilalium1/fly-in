@@ -17,18 +17,6 @@ class Move:
 
 
 def _drone_location(drone: Drone) -> str:
-    """Return the current location label for a drone.
-
-    Returns the zone name the drone currently occupies, or the
-    connection name if the drone is mid-transit toward a restricted
-    zone.
-
-    Args:
-        drone: The drone to describe.
-
-    Returns:
-        A zone or connection name string.
-    """
     if drone.current_zone is not None:
         return drone.current_zone.name
     if drone.current_connection is not None:
@@ -42,21 +30,6 @@ def all_delivered(drones: List[Drone]) -> bool:
 
 
 def assign_paths(sim: Sim) -> bool:
-    """Assign each drone a path using Yen's k-shortest paths.
-
-    Finds up to k distinct routes from start to end, scores them by
-    cost and bottleneck capacity, then distributes drones across them
-    round-robin so multiple routes run in parallel.
-
-    The number of candidate paths k scales with drone count so there
-    are always enough route options to spread the fleet.
-
-    Args:
-        sim: The simulation graph.
-
-    Returns:
-        True if at least one valid path exists, False otherwise.
-    """
     k = max(sim.nb_drones, 10)
     paths = yen_k_shortest_paths(sim, sim.start, sim.end, k)
     if not paths:
@@ -66,15 +39,6 @@ def assign_paths(sim: Sim) -> bool:
 
 
 def run_simulation(sim: Sim) -> Tuple[List[str], int]:
-    """Run the drone routing simulation turn by turn.
-
-    Args:
-        sim: The simulation graph, with drones already assigned paths.
-
-    Returns:
-        A tuple (output_lines, total_turns), where output_lines
-        contains one string per turn describing all movements.
-    """
     drones = sim.drones
 
     # Place all drones at start

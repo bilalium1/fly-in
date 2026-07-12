@@ -32,7 +32,3 @@ lint:
 		--ignore-missing-imports \
 		--disallow-untyped-defs \
 		--check-untyped-defs
-
-lint-strict:
-	$(VENV)/bin/flake8 $(MAIN) $(SRC)
-	$(VENV)/bin/mypy $(MAIN) $(SRC) --strict
