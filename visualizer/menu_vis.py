@@ -156,10 +156,10 @@ class MenuViz:
         if key == pg.K_RETURN:
             if self.n_maps == 0:
                 return ""
-            pg.mixer.music.fadeout(300)
+            pg.mixer.music.fadeout(100)
             self.enter_sound.play()
             self.enter_sound.set_volume(0.1)
-            time.sleep(0.3)
+            time.sleep(0.1)
             return self.current_map
 
         if key == pg.K_s:
@@ -278,5 +278,6 @@ class MenuViz:
             pg.display.flip()
             self.clock.tick(30)
 
-        pg.quit()
+        pygame.mixer.music.stop()
+        pygame.display.quit()
         return ""

@@ -154,9 +154,14 @@ class SimVis:
         )
         self.meteor = pygame.transform.scale(self.raw_meteor, (s, s))
 
-    def handle_keydown(self, key: int) -> None:
+    def handle_keydown(self, key: int) -> str:
         if key in (pygame.K_q, pygame.K_ESCAPE):
             self.running = False
+            return "quit"
+
+        if key == pygame.K_BACKSPACE:
+            self.running = False
+            return "menu"
 
         if key == pygame.K_RIGHT and self.turn + 1 <= len(self.turns) - 1:
             self.turn += 1
@@ -180,6 +185,8 @@ class SimVis:
                 pygame.mixer.music.pause()
             else:
                 pygame.mixer.music.unpause()
+
+        return ""
 
     def update_camera(self) -> None:
         keys = pygame.key.get_pressed()
@@ -371,6 +378,7 @@ class SimVis:
             "[ WASD ] - MOVE CAMERA",
             "[ F ] - DISPLAY INFORMATION",
             "[ R ] - RESET SIMULATION",
+            "[ BACKSPACE ] - RETURN TO MENU"
         ]
         menu_color = (70, 85, 110)
         start_x = 20
@@ -398,16 +406,18 @@ class SimVis:
         self.draw_drones()
         self.draw_ui()
 
-    def run(self) -> None:
+    def run(self) -> str:
         while self.running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    self.running = False
+                    return "quit"
                 elif event.type == pygame.KEYDOWN:
-                    self.handle_keydown(event.key)
+                    result = self.handle_keydown(event.key)
+                    if result in ("quit", "menu"):
+                        return result
 
             self.render_frame()
             pygame.display.flip()
             self.clock.tick(60)
 
-        pygame.quit()
+        return "quit"
