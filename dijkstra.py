@@ -2,7 +2,7 @@
 
 import heapq
 import math
-from typing import Dict, FrozenSet, List, Optional, Set, Tuple
+from typing import Dict, Set, List, Optional, Tuple
 
 from models import ZONE_COST, Hub, Sim
 
@@ -11,23 +11,9 @@ def dijkstra(
     sim: Sim,
     start: Hub,
     end: Hub,
-    removed_edges: Optional[FrozenSet[Tuple[str, str]]] = None,
+    blocked: Set[Tuple[str, str]] = set(),
 ) -> Optional[List[Hub]]:
-    """Compute the shortest-cost path between two hubs.
-
-    Cost is based on destination zone type:
-    normal/priority=1, restricted=2, blocked=unreachable.
-
-    Args:
-        sim: The simulation graph.
-        start: Starting hub.
-        end: Destination hub.
-        removed_edges: Edges to treat as absent (used by Yen's algorithm).
-
-    Returns:
-        List of hubs from start to end inclusive, or None if unreachable.
-    """
-    blocked: FrozenSet[Tuple[str, str]] = removed_edges or frozenset()
+    """Compute the shortest-cost path between two hubs."""
 
     dist: Dict[str, float] = {name: float("inf") for name in sim.hubs}
     prev: Dict[str, Optional[str]] = {name: None for name in sim.hubs}
@@ -132,30 +118,35 @@ def yen_k_shortest_paths(
     if first is None:
         return []
 
+    # all efficient paths discovered
     paths: List[List[Hub]] = [first]
-    candidates: List[Tuple[float, int, List[Hub]]] = []
+    # all cadidate paths to be determined
+    candidates: List[Tuple[float, List[Hub]]] = []
+    # path already discovere
     seen: Set[Tuple[str, ...]] = {tuple(h.name for h in first)}
-    tie: int = 0
 
     for i in range(1, k):
+        # LOOPING FOR PATHS
         prev_path = paths[i - 1]
 
+        # SPUR IS THE NODE WHICH WILL HAVE ITS CONNECTIONS CUT
         for spur_idx in range(len(prev_path) - 1):
             spur_node = prev_path[spur_idx]
+            # ROOT PATH IS THE PATH THAT COMES BEFORE SPUR
             root_path = prev_path[:spur_idx]
 
+            # REMOVE ANY
             removed: Set[Tuple[str, str]] = set()
             for p in paths:
                 if p[:spur_idx] == root_path:
                     removed.add((p[spur_idx].name, p[spur_idx + 1].name))
 
-            root_names: Set[str] = {h.name for h in root_path}
-            for rname in root_names:
-                for neighbor, _ in sim.neighbors(sim.hubs[rname]):
-                    removed.add((rname, neighbor.name))
-                    removed.add((neighbor.name, rname))
+            for hub in root_path:
+                for neighbor, _ in sim.neighbors(hub):
+                    removed.add((hub.name, neighbor.name))
+                    removed.add((neighbor.name, hub.name))
 
-            spur_path = dijkstra(sim, spur_node, end, frozenset(removed))
+            spur_path = dijkstra(sim, spur_node, end, set(removed))
             if spur_path is None:
                 continue
 
@@ -166,13 +157,12 @@ def yen_k_shortest_paths(
             seen.add(key)
 
             cost = path_cost(full_path)
-            tie += 1
-            heapq.heappush(candidates, (cost, tie, full_path))
+            heapq.heappush(candidates, (cost, full_path))
 
         if not candidates:
             break
 
-        _, _, best = heapq.heappop(candidates)
+        _, best = heapq.heappop(candidates)
         paths.append(best)
 
     return paths
@@ -219,8 +209,6 @@ def assign_drones_to_paths(
     3. Interleave drones strictly across the equal-cost paths in a
        round-robin pattern so consecutive drones on the same path are
        spaced apart, avoiding congestion at shared bottlenecks.
-    4. If hill-climbing on the remaining paths can further reduce the
-       makespan, apply it.
 
     Args:
         drones: All drones to assign (modified in place).
@@ -247,36 +235,7 @@ def assign_drones_to_paths(
     for idx in range(n):
         counts[idx % len(lanes)] += 1
 
-    # Step 4: hill-climbing refinement against makespan.
-    improved = True
-    while improved:
-        improved = False
-        current = _score_assignment(lanes, counts)
-        best_delta = 0.0
-        best_i, best_j = -1, -1
-
-        for i in range(len(lanes)):
-            if counts[i] == 0:
-                continue
-            for j in range(len(lanes)):
-                if i == j:
-                    continue
-                counts[i] -= 1
-                counts[j] += 1
-                score = _score_assignment(lanes, counts)
-                delta = current - score
-                if delta > best_delta:
-                    best_delta = delta
-                    best_i, best_j = i, j
-                counts[i] += 1
-                counts[j] -= 1
-
-        if best_i != -1:
-            counts[best_i] -= 1
-            counts[best_j] += 1
-            improved = True
-
-    # Step 5: apply, interleaving across lanes so consecutive drones
+    # Step 4: apply, interleaving across lanes so consecutive drones
     # on the same lane are spread apart (minimises head-of-line blocking).
     assignment: List[int] = []
     lane_queues = [counts[i] for i in range(len(lanes))]

@@ -278,6 +278,6 @@ class MenuViz:
             pg.display.flip()
             self.clock.tick(30)
 
-        pygame.mixer.music.stop()
-        pygame.display.quit()
+        pg.mixer.music.stop()
+        pg.display.quit()
         return ""
