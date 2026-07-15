@@ -167,6 +167,7 @@ def yen_k_shortest_paths(
 
     return paths
 
+
 def assign_drones_to_paths(
     drones: List["Drone"],  # type: ignore[name-defined]  # noqa: F821
     paths: List[List[Hub]],

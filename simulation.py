@@ -17,7 +17,7 @@ class Move:
     connection: Optional[Connection] = None
 
 
-def _drone_location(drone: Drone) -> str:
+def _dloc(drone: Drone) -> str:
     """Return the hub or connection name the drone currently occupies."""
     if drone.current_zone is not None:
         return drone.current_zone.name
@@ -80,9 +80,9 @@ def run_simulation(sim: Sim) -> Tuple[List[str], int]:
             if drone.delivered:
                 continue
 
-            if drone.turns_left_on_connection > 0:
-                drone.turns_left_on_connection -= 1
-                status = "arriving" if drone.turns_left_on_connection == 0 else "in_transit"
+            if drone.conn_turns > 0:
+                drone.conn_turns -= 1
+                status = "arriving" if drone.conn_turns == 0 else "in_transit"
                 intended_moves[drone] = Move(status)
                 continue
 
@@ -160,7 +160,7 @@ def run_simulation(sim: Sim) -> Tuple[List[str], int]:
                 connection.current_drones_in_transit.append(drone)
                 drone.current_connection = connection
                 drone.current_zone = None
-                drone.turns_left_on_connection = 1
+                drone.conn_turns = 1
             else:
                 next_hub.current_drones.append(drone)
                 drone.current_zone = next_hub
@@ -193,7 +193,7 @@ def run_simulation(sim: Sim) -> Tuple[List[str], int]:
                 drone.delivered = True
 
         simulation_output.append(
-            " ".join(f"D{drone.id}-{_drone_location(drone)}" for drone in drones)
+            " ".join(f"D{drone.id}-{_dloc(drone)}" for drone in drones)
         )
 
     return simulation_output, turn

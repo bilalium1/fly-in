@@ -77,6 +77,7 @@ class Hub:
     def __lt__(self, other: "Hub") -> bool:
         return self.name < other.name
 
+
 class Drone:
     """A drone moving through the network."""
 
@@ -92,7 +93,7 @@ class Drone:
         self.current_connection: Optional[Connection] = None
         self.path: List[Hub] = []
         self.path_index: int = 0
-        self.turns_left_on_connection: int = 0
+        self.conn_turns: int = 0
         self.delivered: bool = False
 
 
