@@ -1,5 +1,6 @@
 """Turn-based multi-drone simulation engine."""
 
+from collections import defaultdict
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 
@@ -17,6 +18,7 @@ class Move:
 
 
 def _drone_location(drone: Drone) -> str:
+    """Return the hub or connection name the drone currently occupies."""
     if drone.current_zone is not None:
         return drone.current_zone.name
     if drone.current_connection is not None:
@@ -30,6 +32,14 @@ def all_delivered(drones: List[Drone]) -> bool:
 
 
 def assign_paths(sim: Sim) -> bool:
+    """Find up to k paths and distribute drones across them.
+
+    Args:
+        sim: The simulation graph.
+
+    Returns:
+        True if at least one valid path exists, False otherwise.
+    """
     k = max(sim.nb_drones, 10)
     paths = yen_k_shortest_paths(sim, sim.start, sim.end, k)
     if not paths:
@@ -39,26 +49,28 @@ def assign_paths(sim: Sim) -> bool:
 
 
 def run_simulation(sim: Sim) -> Tuple[List[str], int]:
+    """Run the drone routing simulation turn by turn.
+
+    Args:
+        sim: The simulation graph with drones already assigned paths.
+
+    Returns:
+        A tuple (output_lines, total_turns) where output_lines contains
+        one snapshot string per turn showing every drone's position.
+    """
     drones = sim.drones
 
-    # Place all drones at start
     for drone in drones:
         drone.current_zone = sim.start
         sim.start.current_drones.append(drone)
 
-    simulation_output: List[str] = []
-
-    # Initial placement: all drones begin at the start zone.
-    initial_line = " ".join(f"D{d.id}-{sim.start.name}" for d in drones)
-    if initial_line:
-        simulation_output.append(initial_line)
+    simulation_output: List[str] = [
+        " ".join(f"D{d.id}-{sim.start.name}" for d in drones)
+    ]
 
     turn = 0
 
-    # Safety cap to avoid infinite loops on unsolvable maps.
-    max_turns = 10000
-
-    while not all_delivered(drones) and turn < max_turns:
+    while not all_delivered(drones) and turn < 10000:
         turn += 1
 
         # --- PHASE 1: Determine intended moves ---
@@ -68,16 +80,12 @@ def run_simulation(sim: Sim) -> Tuple[List[str], int]:
             if drone.delivered:
                 continue
 
-            # Drone is mid-transit on a restricted connection
             if drone.turns_left_on_connection > 0:
                 drone.turns_left_on_connection -= 1
-                if drone.turns_left_on_connection == 0:
-                    intended_moves[drone] = Move("arriving")
-                else:
-                    intended_moves[drone] = Move("in_transit")
+                status = "arriving" if drone.turns_left_on_connection == 0 else "in_transit"
+                intended_moves[drone] = Move(status)
                 continue
 
-            # Drone has no more moves left on its path
             if drone.path_index + 1 >= len(drone.path):
                 intended_moves[drone] = Move("wait")
                 continue
@@ -93,52 +101,44 @@ def run_simulation(sim: Sim) -> Tuple[List[str], int]:
             intended_moves[drone] = Move("move", next_hub, connection)
 
         # --- PHASE 2: Count outgoing drones per zone ---
-        outgoing_counts: Dict[str, int] = {}
+        outgoing_counts: Dict[str, int] = defaultdict(int)
         for drone, move in intended_moves.items():
             if move.status == "move" and drone.current_zone is not None:
-                zname = drone.current_zone.name
-                outgoing_counts[zname] = outgoing_counts.get(zname, 0) + 1
+                outgoing_counts[drone.current_zone.name] += 1
 
-        # --- PHASE 3: Validate each move, allow or force wait ---
-        # Moves are validated against a running tally so that several
-        # drones competing for the same destination/connection in a
-        # single turn collectively respect capacity limits.
+        # --- PHASE 3: Validate each move against capacity ---
         confirmed_moves: Dict[Drone, Move] = {}
-        running_zone: Dict[str, int] = {}
-        running_conn: Dict[str, int] = {}
+        running_zone: Dict[str, int] = defaultdict(int)
+        running_conn: Dict[str, int] = defaultdict(int)
 
         for drone, move in intended_moves.items():
             if move.status != "move":
                 confirmed_moves[drone] = move
                 continue
 
-            next_hub_opt = move.next_hub
-            connection_opt = move.connection
-            assert next_hub_opt is not None
-            assert connection_opt is not None
-            next_hub = next_hub_opt
-            connection = connection_opt
+            assert move.next_hub is not None
+            assert move.connection is not None
+            next_hub = move.next_hub
+            connection = move.connection
 
             zone_cap = (
                 next_hub.max_drones
                 - len(next_hub.current_drones)
-                + outgoing_counts.get(next_hub.name, 0)
+                + outgoing_counts[next_hub.name]
             )
-            # Start and end zones have no occupancy restriction.
             if next_hub.name in (sim.end.name, sim.start.name):
                 zone_cap = max(zone_cap, sim.nb_drones)
 
-            conn_cap = connection.max_link_capacity - len(
-                connection.current_drones_in_transit
+            conn_cap = (
+                connection.max_link_capacity
+                - len(connection.current_drones_in_transit)
             )
 
-            used_zone = running_zone.get(next_hub.name, 0)
-            used_conn = running_conn.get(connection.name, 0)
-
-            if used_zone + 1 <= zone_cap and used_conn + 1 <= conn_cap:
+            if running_zone[next_hub.name] + 1 <= zone_cap \
+                    and running_conn[connection.name] + 1 <= conn_cap:
                 confirmed_moves[drone] = move
-                running_zone[next_hub.name] = used_zone + 1
-                running_conn[connection.name] = used_conn + 1
+                running_zone[next_hub.name] += 1
+                running_conn[connection.name] += 1
             else:
                 confirmed_moves[drone] = Move("wait")
 
@@ -148,12 +148,10 @@ def run_simulation(sim: Sim) -> Tuple[List[str], int]:
             if conf_move is None or conf_move.status != "move":
                 continue
 
-            next_hub_opt = conf_move.next_hub
-            connection_opt = conf_move.connection
-            assert next_hub_opt is not None
-            assert connection_opt is not None
-            next_hub = next_hub_opt
-            connection = connection_opt
+            assert conf_move.next_hub is not None
+            assert conf_move.connection is not None
+            next_hub = conf_move.next_hub
+            connection = conf_move.connection
 
             if drone.current_zone is not None:
                 drone.current_zone.current_drones.remove(drone)
@@ -167,7 +165,6 @@ def run_simulation(sim: Sim) -> Tuple[List[str], int]:
                 next_hub.current_drones.append(drone)
                 drone.current_zone = next_hub
                 drone.path_index += 1
-
                 if next_hub.name == sim.end.name:
                     drone.delivered = True
 
@@ -181,11 +178,10 @@ def run_simulation(sim: Sim) -> Tuple[List[str], int]:
             if conn is None:
                 continue
 
-            next_idx = drone.path_index + 1
-            if next_idx >= len(drone.path):
+            if drone.path_index + 1 >= len(drone.path):
                 continue
 
-            arrival_hub = drone.path[next_idx]
+            arrival_hub = drone.path[drone.path_index + 1]
 
             conn.current_drones_in_transit.remove(drone)
             drone.current_connection = None
@@ -196,9 +192,8 @@ def run_simulation(sim: Sim) -> Tuple[List[str], int]:
             if arrival_hub.name == sim.end.name:
                 drone.delivered = True
 
-        snapshot_line = " ".join(
-            f"D{drone.id}-{_drone_location(drone)}" for drone in drones
+        simulation_output.append(
+            " ".join(f"D{drone.id}-{_drone_location(drone)}" for drone in drones)
         )
-        simulation_output.append(snapshot_line)
 
     return simulation_output, turn

@@ -77,10 +77,6 @@ class Hub:
     def __lt__(self, other: "Hub") -> bool:
         return self.name < other.name
 
-    def __repr__(self) -> str:
-        return f"Hub({self.name})"
-
-
 class Drone:
     """A drone moving through the network."""
 
@@ -98,9 +94,6 @@ class Drone:
         self.path_index: int = 0
         self.turns_left_on_connection: int = 0
         self.delivered: bool = False
-
-    def __repr__(self) -> str:
-        return f"D{self.id}"
 
 
 class Sim:

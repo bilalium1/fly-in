@@ -167,33 +167,6 @@ def yen_k_shortest_paths(
 
     return paths
 
-
-def _score_assignment(
-    paths: List[List[Hub]],
-    counts: List[int],
-) -> float:
-    """Return the maximum estimated turns across all path groups.
-
-    The simulation ends when the slowest path finishes, so we minimise
-    the maximum (makespan).
-
-    Args:
-        paths: List of candidate paths.
-        counts: Number of drones assigned to each path.
-
-    Returns:
-        Makespan as a float.
-    """
-    return max(
-        (
-            estimated_turns(paths[i], counts[i])
-            for i in range(len(paths))
-            if counts[i] > 0
-        ),
-        default=0.0,
-    )
-
-
 def assign_drones_to_paths(
     drones: List["Drone"],  # type: ignore[name-defined]  # noqa: F821
     paths: List[List[Hub]],
@@ -229,23 +202,6 @@ def assign_drones_to_paths(
     # Cap at a sensible number of lanes to avoid combinatorial explosion.
     lanes = equal_cost[: min(len(equal_cost), n)]
 
-    # Step 3: strict interleaved round-robin assignment.
-    # Drone 0 → lane 0, Drone 1 → lane 1, ..., Drone k → lane k%len(lanes)
-    counts: List[int] = [0] * len(lanes)
     for idx in range(n):
-        counts[idx % len(lanes)] += 1
-
-    # Step 4: apply, interleaving across lanes so consecutive drones
-    # on the same lane are spread apart (minimises head-of-line blocking).
-    assignment: List[int] = []
-    lane_queues = [counts[i] for i in range(len(lanes))]
-    while sum(lane_queues) > 0:
-        for lane_idx in range(len(lanes)):
-            if lane_queues[lane_idx] > 0:
-                assignment.append(lane_idx)
-                lane_queues[lane_idx] -= 1
-
-    for drone_idx, lane_idx in enumerate(assignment):
-        if drone_idx < n:
-            drones[drone_idx].path = lanes[lane_idx]
-            drones[drone_idx].path_index = 0
+        drones[idx].path = lanes[idx % len(lanes)]
+        drones[idx].path_index = 0
